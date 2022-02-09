@@ -1,0 +1,92 @@
+---
+title: Json
+---
+
+# Json
+
+```csharp
+public class UserInfo
+{
+    public string UserName { get; set; }
+    public int Age { get; set; }
+}
+```
+
+### ToObj
+
+:::note
+字符串转为对象
+:::
+
+```csharp
+string userInfo = @"
+{
+    ""userName"": ""ABCD"",
+    ""age"": 23
+}";
+var user = userInfo.ToObj<UserInfo>();
+// user.UserName == "ABCD";
+// user.Age == 23;
+```
+
+### ToObjCollection
+
+:::note
+字符串转为对象集合
+:::
+
+```csharp
+string userInfo = @"
+[
+    {
+        ""userName"": ""ABCD"",
+        ""age"": 23
+    }
+]";
+IEnumerable<UserInfo> user = userInfo.ToObjCollection<UserInfo>();
+// user.First().UserName = "ABCD";
+// user.First().Age = 23;
+```
+
+### ToJson
+
+:::note
+对象转 json 格式字符串
+:::
+
+```csharp
+UserInfo user = new()
+{
+    UserName = "ABCD",
+    Age = 23
+};
+var jsonString = user.ToJson().Trim();
+// "{\"userName\":\"ABCD\",\"age\":23}"
+```
+
+### JsonMap
+
+:::note
+使用 json 序列化反序列化的方式 map 对象
+:::
+
+```csharp
+public class UserInfoTwo
+{
+    public string UserName { get; set; }
+    public int Age { get; set; }
+}
+```
+
+```csharp
+UserInfo user = new()
+{
+    UserName = "ABCD",
+    Age = 23
+};
+UserInfoTwo user2 = user.JsonMap<UserInfoTwo>();
+```
+
+:::tip
+在某些情况下还能当深拷贝使用
+:::

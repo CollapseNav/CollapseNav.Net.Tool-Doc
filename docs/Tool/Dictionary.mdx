@@ -1,0 +1,72 @@
+---
+title: Dictionary(字典)
+---
+
+# Dictionary
+
+### AddOrUpdate
+
+:::note
+添加或更新字典元素
+:::
+
+```csharp
+Dictionary<int, string> dict = new();
+dict.AddOrUpdate(new KeyValuePair<int, string>(1, "1"))
+.AddOrUpdate(new KeyValuePair<int, string>(1, "1"))
+.AddOrUpdate(1, "2");
+// 1 : "2"
+```
+
+:::tip
+支持传入 `KeyValuePair` 和 单独的 key+value
+:::
+
+### AddRange
+
+:::note
+添加多个字典项
+:::
+
+```csharp
+Dictionary<int, string> dict = new();
+Dictionary<int, string> dict2 = new()
+{
+    { 1, "1" },
+    { 2, "2" },
+    { 3, "3" },
+};
+dict.AddRange(dict2);
+// 1 : "1"
+// 2 : "2"
+// 3 : "3"
+```
+:::tip
+支持传入 `KeyValuePair` 集合
+:::
+
+### ToDictionary
+:::note
+将集合转为字典
+:::
+
+```csharp
+string[] nums = new[] { "1", "2", "3", "4", "5" };
+IDictionary<int, string> dict = nums.ToDictionary(item => int.Parse(item));
+```
+
+### GetAndRemove
+
+:::note
+获取值并且移除字典项
+:::
+
+```csharp
+Dictionary<int, string> dict = new()
+{
+    { 1, "1" },
+    { 2, "2" },
+    { 3, "3" },
+};
+var value = dict.GetAndRemove(1);
+```
