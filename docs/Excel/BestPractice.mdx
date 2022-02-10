@@ -2,14 +2,19 @@
 
 一些方便好用的 **"最佳实践"**
 
+:::note
+只是一些最简单的使用，更多功能需要额外配置
+:::
+
 ## 读取/导入
 
-Excel表格数据
+Excel 表格数据
+
 | Field0 | Field1 | Field2 | Field3 |
 | ------ | ------ | ------ | ------ |
-| 233    | 23     | Male   | 233.33 |
-| 1122   | 12     | Female | 123.23 |
-| ...    | ...    | ...    | ...    |
+| 233 | 23 | Male | 233.33 |
+| 1122 | 12 | Female | 123.23 |
+| ... | ... | ... | ... |
 
 ### 简单使用
 
@@ -18,6 +23,7 @@ Excel表格数据
 #### 根据属性(Property)读取
 
 代码中定义的数据实体
+
 ```csharp
 public class ExcelTestDto
 {
@@ -28,7 +34,7 @@ public class ExcelTestDto
 }
 ```
 
-不需要额外配置, 直接传入 Excel文件 的**文件路径或者流**即可
+不需要额外配置, 直接传入 Excel 文件 的**文件路径或者流**即可
 
 ```csharp
 IEnumerable<ExcelTestDto> entitysFromPath = await ReadConfig<ExcelTestDto>.ExcelToEntityAsync("******.xlsx");
@@ -41,6 +47,7 @@ IEnumerable<ExcelTestDto> entitysFromStream = await ExcelReadTool.ExcelToEntityA
 #### 根据注解(Attribute)读取
 
 代码中定义的数据实体
+
 ```csharp
 public class ExcelTestDto
 {
@@ -55,7 +62,7 @@ public class ExcelTestDto
 }
 ```
 
-不需要额外配置, 直接传入 Excel文件 的**文件路径或者流**即可
+不需要额外配置, 直接传入 Excel 文件 的**文件路径或者流**即可
 
 ```csharp
 IEnumerable<ExcelTestDto> entitysFromPath = await ReadConfig<ExcelTestDto>.ExcelToEntityAsync("******.xlsx");
@@ -65,7 +72,9 @@ IEnumerable<ExcelTestDto> entitysFromPath = await ExcelReadTool.ExcelToEntityAsy
 IEnumerable<ExcelTestDto> entitysFromStream = await ExcelReadTool.ExcelToEntityAsync<ExcelTestDto>(stream);
 ```
 
+:::tip
 与上方使用属性读取的代码相同, **自动优先使用注解读取, 若无注解, 则使用属性**
+:::
 
 ### 自定义读取配置
 
@@ -86,7 +95,7 @@ var config = new ReadConfig<ExcelTestDto>()
 ;
 ```
 
-然后传入 Excel文件 的**文件路径或者流**即可
+然后传入 Excel 文件 的**文件路径或者流**即可
 
 ```csharp
 IEnumerable<ExcelTestDto> entitys = await config.ToEntityAsync("******.xlsx");
@@ -138,6 +147,7 @@ foreach (var (field, prop) in collection)
 #### 根据属性(Property)导出
 
 代码中定义的数据实体
+
 ```csharp
 public class ExcelTestDto
 {
@@ -167,6 +177,7 @@ await ExportConfig<ExcelTestDto>.DataExportAsync(filePath, exportData);
 #### 根据注解(Attribute)读取
 
 代码中定义的数据实体
+
 ```csharp
 public class ExcelTestDto
 {
@@ -220,4 +231,3 @@ var exportConfig = new ExportConfig<ExcelTestDto>(exportData)
 ;
 await exportConfig.DataExportAsync(filePath);
 ```
-

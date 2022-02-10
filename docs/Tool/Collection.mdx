@@ -28,7 +28,7 @@ notEmptyArray.IsEmpty(); // false
 ### ContainAnd
 
 :::note
-判断A集合是否包含B集合中的所有元素
+判断 A 集合是否包含 B 集合中的所有元素
 :::
 
 ```csharp
@@ -41,7 +41,7 @@ strList.ContainAnd((x, y) => x == y, new[] { "2", "8" }); // False
 ```
 
 :::tip
-A集合 **全部** 包含了B集合中的元素时为 `True`
+A 集合 **全部** 包含了 B 集合中的元素时为 `True`
 :::
 
 :::caution
@@ -51,7 +51,7 @@ A集合 **全部** 包含了B集合中的元素时为 `True`
 ### ContainOr
 
 :::note
-判断A集合是否包含B集合中的元素
+判断 A 集合是否包含 B 集合中的元素
 :::
 **至少一个** Contain 则为 `True`
 
@@ -67,7 +67,7 @@ strList.ContainOr((x, y) => x == y, new[] { "7", "8" }); // False
 ```
 
 :::tip
-A集合 **部分** 包含了B集合中的元素时为 `True`
+A 集合 **部分** 包含了 B 集合中的元素时为 `True`
 :::
 
 :::caution
@@ -153,6 +153,7 @@ intList.Unique(item => item);
 intList.Unique((x, y) => x == y);
 // 1,2,3,4
 ```
+
 :::tip
 针对自定义类型可以通过传入委托进行去重
 :::
@@ -196,6 +197,7 @@ userInfos.SequenceEqual(userInfosNotCopy, item => item.Age.GetHashCode()); // fa
 :::
 
 ### Shuffle
+
 :::note
 打乱顺序, 暂时基于 `Random` 实现
 :::
@@ -224,6 +226,7 @@ nums.ForEach(item => sum += item);
 ```
 
 ### AddRange
+
 :::note
 为 `IEnumerable` 和 `ICollection` 提供了两种不同的 `AddRange` 实现
 :::
@@ -237,11 +240,13 @@ ICollection<int> nums = new List<int> { 1, 2, 3 };
 // ICollection 将直接在原集合上进行修改
 nums.AddRange(4, 5, 6);
 ```
+
 :::tip
 如果继承了 `ICollection` 则会使用第二种 `AddRange`, 不然就是第一种
 
-同时提供了在 `AddRange` 时去重的重载, 但是只会对参数去重, 如果需要对原集合进行去重, 最好使用上面的 [`Unique`](#unique)
+同时提供了在 `AddRange` 时去重的重载, 但是只会对传入的集合去重, 如果需要对原集合进行去重, 最好使用上面的 [`Unique`](#unique)
 :::
+
 ```csharp
 var nums = new[] { 1, 2, 3 };
 var enums = nums.AddRange((x, y) => x == y, 3, 4, 5);
@@ -260,5 +265,3 @@ foreach (var (item, index) in nums.SelectWithIndex());
 foreach (var (item, index) in nums.SelectWithIndex(num => num * num));
 foreach (var (item, index) in nums.SelectWithIndex(num => num.ToString(), num => num));
 ```
-
-

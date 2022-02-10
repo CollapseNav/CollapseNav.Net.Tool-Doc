@@ -1,32 +1,14 @@
 ---
 title: string(字符串)
 ---
+
 # string
-
-## TODO
-
-- [x] [`IsNull` 判空](#nullempty)
-- [x] [`PadLeft` 左填充 `PadRight` 右填充](#padleftandright)
-- [x] [`ToChinese` 长度16以下的整数字符串转为中文](#tochinese)
-- [x] [`ToXXX` 字符串转为基础数据类型](#toxxx)
-- [x] [`Join` Join](#join)
-- [x] [`CanPing` 检测域名可通](#canping)
-- [ ] `IsEmail` 检查是否邮箱格式
-  - [x] 仅仅只是检查邮箱格式
-  - [ ] 检查邮箱是否存在
-- [ ] `IsUrl` 检查是否 Url 格式
-  - [x] 检查是否 `http,https` 开头
-  - [ ] 检查域名是否可通
-- [x] [`StartsWith`&`EndsWith` 支持传入集合判断 StartsWith 和 EndsWith](#startswitendswith)
-- [ ] 去除如 `\n\r` 的转义字符
-- [ ] [`First` `Last` 取前后固定长度](#firstlast)
-- [ ] ...
-
-## How To Use
 
 ### Null/Empty
 
-`string`里用到过的最多的判空操作
+:::note
+字符串判空
+:::
 
 ```csharp
 string empty = "";
@@ -40,7 +22,9 @@ empty.NotEmpty(); //False
 whiteSpace.NotNull(); //False
 ```
 
-根据实际碰到的情况, 若字符串为空, 则返回传入的值
+:::tip
+若字符串为空, 则返回参数中传入的值
+:::
 
 ```csharp
 empty.IsNull("233"); // "233"
@@ -49,7 +33,9 @@ notEmpty.IsEmpty("233"); // "NotEmpty"
 
 ### ToChinese
 
-将数字字符串转为中文, 不是很成熟
+:::note
+将数字字符串转为中文
+:::
 
 ```csharp
 string num = "10510001010";
@@ -64,9 +50,15 @@ num = "9999999999999999";
 num.ToChinese(); // "九千九百九十九万九千九百九十九亿九千九百九十九万九千九百九十九"
 ```
 
+:::caution
+不是很成熟，很可能出现各种奇奇怪怪的问题
+:::
+
 ### ToXXX
 
+:::note
 字符串转基本数据格式
+:::
 
 ```csharp
 // 日期
@@ -88,7 +80,9 @@ longString.ToLong();
 
 ### Join
 
-不限 `Join` 的数据类型, 可通过委托指定 **Join** 的内容
+:::note
+不限数据类型的 `Join`
+:::
 
 ```csharp
 string strJoin = "233.233.233.233";
@@ -98,7 +92,15 @@ intJoin.Join("@"); // "1@2@3"
 intJoin.Join("@", item => -item); // "-1@-2@-3"
 ```
 
+:::tip
+可通过委托指定 **Join** 的内容
+:::
+
 ### CanPing
+
+:::note
+是否可以被 ping 通
+:::
 
 ```csharp
 string url = "https://www.bilibili.com/";
@@ -106,6 +108,10 @@ url.CanPing(); // 如果联网了,应该为 True
 ```
 
 ### PadLeftAndRight
+
+:::note
+字符串填充
+:::
 
 ```csharp
 int iValue = 233;
@@ -139,6 +145,10 @@ lValue.PadRight(6, item => item + 1, '-'); // "23334-"
 
 ### StartsWit&&EndsWith
 
+:::note
+对字符串集合的 StartsWit&&EndsWith 判断
+:::
+
 ```csharp
 string[] strs = new[] { "2333", "233333333333333", "2332" };
 strs.HasStartsWith("233");  // True
@@ -154,17 +164,11 @@ strs.HasEndsWith("aBcd", true)
 strs.AllEndsWith("aBcd", true)
 ```
 
-~~感觉没有什么人会用这种的~~
-
-```csharp
-string exampleString = "23333333333333";
-exampleString.AllStartsWith("23", "233", "233333"); // True
-exampleString.HasStartsWith("223", "233", "233333"); // True
-exampleString.AllEndsWith("333333", "33", "3"); // True
-exampleString.HasEndsWith("333333", "33", "32"); // True
-```
-
 ### FirstLast
+
+:::note
+取字符串 **前几个** **后几个**
+:::
 
 ```csharp
 string str = "12345678987654321";

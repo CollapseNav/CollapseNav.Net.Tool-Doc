@@ -1,19 +1,14 @@
 ---
 title: Stream(流)
 ---
+
 # Stream
 
-## TODO
-
-- [x] [`ToBytes` 流转为bytes](#tobytes)
-- [x] [`ToStream` bytes转为流](#tostream)
-- [x] [`SaveTo` 保存为文件](#saveto)
-- [x] [`Seek` 流指针移动](#seek)
-- [ ] ...
-
-## How To Use
-
 ### ToBytes
+
+:::note
+流转为 bytes
+:::
 
 ```csharp
 var filePath = "./XXXXX";
@@ -23,6 +18,10 @@ var bytes = fs.ToBytes();
 
 ### ToStream
 
+:::note
+bytes 转为流
+:::
+
 ```csharp
 var filePath = "./XXXXX";
 using var fs = new FileStream(filePath, FileMode.OpenOrCreate);
@@ -30,6 +29,10 @@ var stream = fs.ToBytes().ToStream();
 ```
 
 ### SaveTo
+
+:::note
+保存为文件
+:::
 
 ```csharp
 var filePath = "./XXXXX";
@@ -41,10 +44,24 @@ fs.ToBytes().SaveTo(toFile);
 
 ### Seek
 
+:::note
+流指针移动
+:::
+
 ```csharp
 var filePath = "./XXXXX";
 using var fs = new FileStream(filePath, FileMode.OpenOrCreate);
 fs.SeekToEnd();
 fs.SeekToOrigin();
 fs.SeekTo(0);
+```
+
+### Clear
+
+:::note
+清空流
+:::
+
+```csharp
+stream.Clear();
 ```

@@ -1,9 +1,8 @@
 ---
 title: Security(加密)
 ---
-# Security
 
-## TODO
+# Security
 
 - [x] `MD5Tool.Encrypt` MD5 计算
 - [x] `AESTool.Encrypt` AES 加密
@@ -13,9 +12,11 @@ title: Security(加密)
 - [x] `MD5Tool.Encrypt` 文件计算 MD5
 - [x] `Sha1Tool.Encrypt` 文件计算 sha1
 
-## How To Use
-
 ### Aes
+
+:::note
+简单实现了 Aes 加解密
+:::
 
 ```csharp
 var msg = "123123123";
@@ -33,4 +34,6 @@ de = msg.AesDe("123123123123");
 // de == msg
 ```
 
-
+:::tip
+同时还有 MD5 sha256 sha1，都是类似的用法
+:::

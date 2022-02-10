@@ -1,14 +1,8 @@
 ---
 title: Type(反射)
 ---
+
 # Type
-
-## TODO
-
-- [x] [`IsBuildInType/IsBaseType` 判断是否基本数据类型](#isbuildintypeisbasetype)
-- [x] [`PropNames` 获取属性名称](#propnames)
-- [x] [`GetValue` 通过属性名称取值](#getvalue)
-- [ ] 反射赋值
 
 ```csharp
 public class PropTest1
@@ -24,14 +18,15 @@ public class PropTest0
 }
 ```
 
-## How To Use
-
 ### IsBuildInType/IsBaseType
 
-内建类型/基础类型/内置类型(差不多意思的其他说法)
+:::note
+判断是否基本数据类型
 
 `Boolean,Byte,SByte,Char,Decimal,Double,Single,Int32`
-`UInt32,IntPtr,UIntPtr,Int64,UInt64,Int16,UInt16,String`
+
+`UInt32,IntPtr,UIntPtr,Int64,UInt64,Int16,UInt16,String,......`
+:::
 
 ```csharp
 int intValue = 2333;
@@ -47,14 +42,18 @@ doubleValue.IsBuildInType(); // True
 stringValue.IsBuildInType(); // True
 boolValue.IsBuildInType(); // True
 boolValue.IsBaseType(); // True
-TypeTool.IsBuildInType<TypeTest>(); // False
-TypeTool.IsBaseType<TypeTest>(); // False
 ...
 ```
 
+:::caution
+DateTime,Guid 等也被我当成 BaseType 了
+:::
+
 ### PropNames
 
-获取属性的名称,可设定递归深度
+:::note
+获取属性的名称
+:::
 
 ```csharp
 var props = typeof(PropTest1).PropNames();
@@ -67,7 +66,15 @@ props = typeof(PropTest0).PropNames(0);
 // {Prop0", "Prop"}
 ```
 
+:::tip
+可针对嵌套类型设定递归深度
+:::
+
 ### GetValue
+
+:::note
+获取对象属性的 Value
+:::
 
 ```csharp
 var obj = new PropTest1
@@ -79,7 +86,15 @@ var obj = new PropTest1
 obj.GetValue("Prop1"); // "1"
 ```
 
+:::caution
+只做了获取公共属性值的部分，没有获取私有字段的功能，后期可能回考虑增加
+:::
+
 ### AttrValues
+
+:::note
+获取类属性上的 Attribute
+:::
 
 ```csharp
 ...
