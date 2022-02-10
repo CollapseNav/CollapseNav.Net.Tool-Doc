@@ -1,4 +1,4 @@
-FROM node as build
+FROM node:alpine as build
 WORKDIR /src
 COPY ./ ./
 RUN yarn config set registry https://registry.npm.taobao.org/ && yarn && yarn run build
