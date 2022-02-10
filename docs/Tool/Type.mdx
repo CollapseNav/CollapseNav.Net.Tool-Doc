@@ -1,5 +1,6 @@
 ---
 title: Type(反射)
+sidebar_position: 4
 ---
 
 # Type
@@ -68,6 +69,8 @@ props = typeof(PropTest0).PropNames(0);
 
 :::tip
 可针对嵌套类型设定递归深度
+
+默认深度为 0
 :::
 
 ### GetValue
@@ -87,7 +90,23 @@ obj.GetValue("Prop1"); // "1"
 ```
 
 :::caution
-只做了获取公共属性值的部分，没有获取私有字段的功能，后期可能回考虑增加
+只做了获取公共属性值的部分，没有获取私有字段的功能，后期可能会考虑增加
+:::
+
+### SetValue
+
+:::note
+设置对象的属性值
+:::
+
+```csharp
+var data = new PropTest1 { Prop1 = "1" };
+data.SetValue("Prop1", "233");
+// data.Prop1 == "233"
+```
+
+:::caution
+只做了修改公共属性值的部分，没有修改私有字段的功能，后期可能会考虑增加
 :::
 
 ### AttrValues

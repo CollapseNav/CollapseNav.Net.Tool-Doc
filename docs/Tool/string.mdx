@@ -1,5 +1,6 @@
 ---
 title: string(字符串)
+sidebar_position: 2
 ---
 
 # string
@@ -93,7 +94,7 @@ intJoin.Join("@", item => -item); // "-1@-2@-3"
 ```
 
 :::tip
-可通过委托指定 **Join** 的内容
+可通过委托指定 **Join** 拼接的内容
 :::
 
 ### CanPing
@@ -174,4 +175,56 @@ strs.AllEndsWith("aBcd", true)
 string str = "12345678987654321";
 str.First(5); // "12345"
 str.Last(5); // "54321"
+```
+
+### AutoMask
+
+:::note
+字符串自动遮罩
+:::
+
+```csharp
+var origin = "CollapseNav.Net.Tool";
+var masked = origin.AutoMask(); // Col*ool
+```
+
+:::caution
+可用性可能不大高
+:::
+
+### GetDomain
+
+:::note
+获取 Url 中的域名部分
+:::
+
+```csharp
+string url = "https://www.github.com";
+var domain = url.GetDomain(); // www.github.com
+```
+
+### Base64
+
+:::note
+Base64 相关的操作
+:::
+
+```csharp
+var imagePath = "./xxx.png";
+// 图片转为 base64
+var base64String = imagePath.ImageToBase64();
+// base64 保存为流
+var stream = base64String.Base64ImageToStream();
+// base64 保存到文件
+base64String.Base64ImageSaveTo(savePath);
+```
+
+:::tip
+如果想要将普通文件转为 base64 也是可以的
+:::
+
+```csharp
+var filePath = "./xxxx.txt";
+using var fs = filePath.OpenReadShareStream();
+var base64String = fs.StreamToBase64();
 ```

@@ -1,5 +1,6 @@
 ---
 title: Collection(集合)
+sidebar_position: 1
 ---
 
 # Collection
@@ -22,7 +23,9 @@ notEmptyArray.IsEmpty(); // false
 ```
 
 :::tip
-集合为 `null` 或或者元素为空，结果都为 `True`
+集合为 `null` 或者元素为空，结果都为 `True`
+
+无需再对集合做空判断
 :::
 
 ### ContainAnd
@@ -34,14 +37,16 @@ notEmptyArray.IsEmpty(); // false
 ```csharp
 string[] strList = { "1", "2", "3", "4", "5", "6" };
 strList.ContainAnd(new[] { "2", "6" }); // True
-strList.ContainAnd(new[] { "2", "8" }); // False
+strList.ContainAnd("2", "8", "10", "11", "20"); // False
 
 strList.ContainAnd((x, y) => x == y, new[] { "2", "6" }); // True
-strList.ContainAnd((x, y) => x == y, new[] { "2", "8" }); // False
+strList.ContainAnd((x, y) => x == y, "2", "8", "10", "11", "20"); // False
 ```
 
 :::tip
 A 集合 **全部** 包含了 B 集合中的元素时为 `True`
+
+可传入委托进行自定义判断
 :::
 
 :::caution
@@ -53,21 +58,22 @@ A 集合 **全部** 包含了 B 集合中的元素时为 `True`
 :::note
 判断 A 集合是否包含 B 集合中的元素
 :::
-**至少一个** Contain 则为 `True`
 
 ```csharp
 string[] strList = { "1", "2", "3", "4", "5", "6" };
 strList.ContainOr(new[] { "2", "6" }); // True
 strList.ContainOr(new[] { "2", "8" }); // True
-strList.ContainOr(new[] { "7", "8" }); // False
+strList.ContainOr("7", "8"); // False
 
 strList.ContainOr((x, y) => x == y, new[] { "2", "6" }); // True
 strList.ContainOr((x, y) => x == y, new[] { "2", "8" }); // True
-strList.ContainOr((x, y) => x == y, new[] { "7", "8" }); // False
+strList.ContainOr((x, y) => x == y, "7", "8"); // False
 ```
 
 :::tip
 A 集合 **部分** 包含了 B 集合中的元素时为 `True`
+
+可传入委托进行自定义判断
 :::
 
 :::caution
@@ -97,13 +103,15 @@ numMergeList = nums.Merge((x, y) => x == y, item => item.GetHashCode());
 ```
 
 :::tip
+`Merge` 中的参数维数需要小于等于源集合
+
 可通过传入委托在合并的同时去重
 :::
 
 ### SpliteCollection
 
 :::note
-集合分割
+集合分割为指定大小
 :::
 
 ```csharp
@@ -124,6 +132,10 @@ numSplit = nums.SpliteCollection(3);
     {10}
 */
 ```
+
+:::caution
+感觉非常鸡肋，后面可能会删掉
+:::
 
 ### WhereIf
 
@@ -244,7 +256,7 @@ nums.AddRange(4, 5, 6);
 :::tip
 如果继承了 `ICollection` 则会使用第二种 `AddRange`, 不然就是第一种
 
-同时提供了在 `AddRange` 时去重的重载, 但是只会对传入的集合去重, 如果需要对原集合进行去重, 最好使用上面的 [`Unique`](#unique)
+同时提供了在 `AddRange` 时去重的重载, 只会对传入的集合去重, 如果需要对原集合进行去重, 最好使用上面的 [`Unique`](#unique)
 :::
 
 ```csharp
@@ -265,3 +277,7 @@ foreach (var (item, index) in nums.SelectWithIndex());
 foreach (var (item, index) in nums.SelectWithIndex(num => num * num));
 foreach (var (item, index) in nums.SelectWithIndex(num => num.ToString(), num => num));
 ```
+
+:::tip
+可以通过委托决定返回的 `item` 和 `index`
+:::

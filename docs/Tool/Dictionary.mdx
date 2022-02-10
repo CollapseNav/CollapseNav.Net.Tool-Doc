@@ -1,5 +1,6 @@
 ---
 title: Dictionary(字典)
+sidebar_position: 3
 ---
 
 # Dictionary
@@ -12,7 +13,8 @@ title: Dictionary(字典)
 
 ```csharp
 Dictionary<int, string> dict = new();
-dict.AddOrUpdate(new KeyValuePair<int, string>(1, "1"))
+dict
+.AddOrUpdate(new KeyValuePair<int, string>(1, "1"))
 .AddOrUpdate(new KeyValuePair<int, string>(1, "1"))
 .AddOrUpdate(1, "2");
 // 1 : "2"
@@ -41,11 +43,13 @@ dict.AddRange(dict2);
 // 2 : "2"
 // 3 : "3"
 ```
+
 :::tip
 支持传入 `KeyValuePair` 集合
 :::
 
 ### ToDictionary
+
 :::note
 将集合转为字典
 :::
@@ -54,6 +58,10 @@ dict.AddRange(dict2);
 string[] nums = new[] { "1", "2", "3", "4", "5" };
 IDictionary<int, string> dict = nums.ToDictionary(item => int.Parse(item));
 ```
+
+:::tip
+需要使用委托指定字典的 `Key` 值
+:::
 
 ### GetAndRemove
 
@@ -68,5 +76,5 @@ Dictionary<int, string> dict = new()
     { 2, "2" },
     { 3, "3" },
 };
-var value = dict.GetAndRemove(1);
+string value = dict.GetAndRemove(1);
 ```
