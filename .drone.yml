@@ -1,0 +1,47 @@
+kind: pipeline
+type: docker
+name: default
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+  - name: pack
+    when:
+      branch:
+        - pack
+    image: docker:dind
+    environment:
+      IMAGE: collapsenav-dotnet-tool-doc
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
+    commands:
+      - docker build -t $IMAGE .
+  - name: push
+    when:
+      branch:
+        - pack
+    image: docker:dind
+    environment:
+      IMAGE: collapsenav-dotnet-tool-doc
+      DOCKERUSER:
+        from_secret: dockeruser
+      DOCKERPWD:
+        from_secret: dockerpwd
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
+    commands:
+      - export datetag=$(date +%Y-%m-%d-%H-%M)
+      - export dockerorigin=docker.collapsenav.cn
+      - docker login $dockerorigin -u $DOCKERUSER -p $DOCKERPWD
+      - docker tag $IMAGE $dockerorigin/$IMAGE
+      - docker tag $IMAGE $dockerorigin/$IMAGE:$datetag
+      - docker push $dockerorigin/$IMAGE
+      - docker push $dockerorigin/$IMAGE:$datetag
+volumes:
+  - name: dockersock
+    host:
+      path: /var/run/docker.sock
