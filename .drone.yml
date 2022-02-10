@@ -10,7 +10,7 @@ steps:
   - name: pack
     when:
       branch:
-        - pack
+        - main
     image: docker:dind
     environment:
       IMAGE: collapsenav-dotnet-tool-doc
@@ -22,7 +22,7 @@ steps:
   - name: push
     when:
       branch:
-        - pack
+        - main
     image: docker:dind
     environment:
       IMAGE: collapsenav-dotnet-tool-doc
