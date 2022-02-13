@@ -2,27 +2,31 @@
 
 一些方便好用的 **"最佳实践"**
 
-:::note
-只是一些最简单的使用，更多功能需要额外配置
-:::
-
 ## 读取/导入
 
 Excel 表格数据
 
 | Field0 | Field1 | Field2 | Field3 |
 | ------ | ------ | ------ | ------ |
-| 233 | 23 | Male | 233.33 |
-| 1122 | 12 | Female | 123.23 |
-| ... | ... | ... | ... |
+| 233    | 23     | Male   | 233.33 |
+| 1122   | 12     | Female | 123.23 |
+| ...    | ...    | ...    | ...    |
+
+:::danger
+表格必须要有一个一行的表头，不然无法正常导入
+:::
 
 ### 简单使用
 
+:::note
 最简单的使用方式, 实体定义之后只需一行代码即可完成
+:::
 
 #### 根据属性(Property)读取
 
+:::info
 代码中定义的数据实体
+:::
 
 ```csharp
 public class ExcelTestDto
@@ -34,8 +38,6 @@ public class ExcelTestDto
 }
 ```
 
-不需要额外配置, 直接传入 Excel 文件 的**文件路径或者流**即可
-
 ```csharp
 IEnumerable<ExcelTestDto> entitysFromPath = await ReadConfig<ExcelTestDto>.ExcelToEntityAsync("******.xlsx");
 IEnumerable<ExcelTestDto> entitysFromStream = await ReadConfig<ExcelTestDto>.ExcelToEntityAsync(stream);
@@ -44,9 +46,15 @@ IEnumerable<ExcelTestDto> entitysFromPath = await ExcelReadTool.ExcelToEntityAsy
 IEnumerable<ExcelTestDto> entitysFromStream = await ExcelReadTool.ExcelToEntityAsync<ExcelTestDto>(stream);
 ```
 
+:::tip
+不需要额外配置, 直接传入 Excel 文件 的**路径或流**即可
+:::
+
 #### 根据注解(Attribute)读取
 
+:::info
 代码中定义的数据实体
+:::
 
 ```csharp
 public class ExcelTestDto
@@ -62,8 +70,6 @@ public class ExcelTestDto
 }
 ```
 
-不需要额外配置, 直接传入 Excel 文件 的**文件路径或者流**即可
-
 ```csharp
 IEnumerable<ExcelTestDto> entitysFromPath = await ReadConfig<ExcelTestDto>.ExcelToEntityAsync("******.xlsx");
 IEnumerable<ExcelTestDto> entitysFromStream = await ReadConfig<ExcelTestDto>.ExcelToEntityAsync(stream);
@@ -73,6 +79,8 @@ IEnumerable<ExcelTestDto> entitysFromStream = await ExcelReadTool.ExcelToEntityA
 ```
 
 :::tip
+不需要额外配置, 直接传入 Excel 文件 的**文件或流**即可
+
 与上方使用属性读取的代码相同, **自动优先使用注解读取, 若无注解, 则使用属性**
 :::
 
@@ -84,7 +92,7 @@ IEnumerable<ExcelTestDto> entitysFromStream = await ExcelReadTool.ExcelToEntityA
 
 "越是想要搞骚操作, 就会发现**简单使用**适用范围不够......"
 
-"除非**自定义读取配置**"
+"所以要**自定义读取配置**"
 
 ```csharp
 var config = new ReadConfig<ExcelTestDto>()
@@ -95,7 +103,11 @@ var config = new ReadConfig<ExcelTestDto>()
 ;
 ```
 
-然后传入 Excel 文件 的**文件路径或者流**即可
+:::tip
+添加配置时基本上是按照 表头--属性--委托 这样传参
+
+委托全是以 `string` 作为参数，返回值类型需要与属性一致
+:::
 
 ```csharp
 IEnumerable<ExcelTestDto> entitys = await config.ToEntityAsync("******.xlsx");
@@ -122,9 +134,9 @@ var config = new ReadConfig<ExcelTestDto>()
 ;
 ```
 
-### 数据库中的配置?
+### 全使用字符串进行配置
 
-偶尔会有把配置存在数据库中的情况, 这时候全都用字符串即可
+可以使用属性名称字符串代替属性，有时可以简化部分代码
 
 ```csharp
 var config = new ReadConfig<ExcelTestDto>()
@@ -133,6 +145,15 @@ var config = new ReadConfig<ExcelTestDto>()
 .Add("Field2", "Field2")
 .Add("Field3", "Field3")
 ;
+```
+
+:::tip
+如果有把配置存入数据库的需要，这边的方式就非常有用了
+
+可以遍历配置，然后添加
+:::
+
+```csharp
 // 如果从数据库里读到了配置集合
 foreach (var (field, prop) in collection)
     config.Add(field, prop);
@@ -142,11 +163,15 @@ foreach (var (field, prop) in collection)
 
 ### 简单使用
 
+:::note
 最简单的使用方式, 实体定义之后只需一行代码即可完成
+:::
 
 #### 根据属性(Property)导出
 
+:::info
 代码中定义的数据实体
+:::
 
 ```csharp
 public class ExcelTestDto
@@ -157,6 +182,10 @@ public class ExcelTestDto
     public double Field3 { get; set; }
 }
 ```
+
+:::note
+使用方式基本上和上方的导入相同
+:::
 
 ```csharp
 IEnumerable<ExcelTestDto> exportData = new[] {
@@ -176,7 +205,9 @@ await ExportConfig<ExcelTestDto>.DataExportAsync(filePath, exportData);
 
 #### 根据注解(Attribute)读取
 
+:::info
 代码中定义的数据实体
+:::
 
 ```csharp
 public class ExcelTestDto
@@ -191,6 +222,10 @@ public class ExcelTestDto
     public double Height { get; set; }
 }
 ```
+
+:::note
+使用方式基本上和上方的导入相同
+:::
 
 ```csharp
 IEnumerable<ExcelTestDto> exportData = new[] {
@@ -209,6 +244,10 @@ await ExportConfig<ExcelTestDto>.DataExportAsync(filePath, exportData);
 ```
 
 ### 自定义导出配置
+
+:::note
+使用方式基本上和上方的导入相同
+:::
 
 ```csharp
 IEnumerable<ExcelTestDto> exportData = new[] {
@@ -231,3 +270,7 @@ var exportConfig = new ExportConfig<ExcelTestDto>(exportData)
 ;
 await exportConfig.DataExportAsync(filePath);
 ```
+
+:::tip
+同时也支持使用字符串配置属性，使用方式相同
+:::
