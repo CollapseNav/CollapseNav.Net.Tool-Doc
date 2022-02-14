@@ -69,6 +69,8 @@ using IExcelCellRead reader = new MiniCellRead(filePath);
 为了降低心智负担, `IExcelCellRead` 有静态方法 `GetCellRead`, 用以自动生成 `IExcelCellRead` 的实例
 
 5M 以上的自动使用 `MiniExcel` 作为实现, 其他时候随机使用 EPPlus 或 NPOI
+
+这部分的设计逻辑基本上和 `IExcelRead` 相同
 :::
 
 ```csharp
@@ -79,9 +81,9 @@ using IExcelCellRead reader = IExcelCellRead.GetCellRead(filePath);
 混用可能会产生意想不到的 bug
 :::
 
-## 使用
+## 简单使用
 
-### 获取单元格的值
+### 获取单元格
 
 ```csharp
 // 第 1 行 第 6 列
@@ -91,7 +93,7 @@ IReadCell value = reader[0, 5];
 ### 获取行
 
 ```csharp
-IEnumerable<IReadCell> row = read[0];
+IEnumerable<IReadCell> row = reader[0];
 ```
 
 ### 获取列
@@ -101,5 +103,88 @@ IEnumerable<IReadCell> row = read[0];
 :::
 
 ```csharp
-IEnumerable<IReadCell> col = read["Column"];
+IEnumerable<IReadCell> col = reader["Column"];
 ```
+
+### 设置值
+
+```csharp
+reader[1, 0].Value = 2333;
+reader[1, 1].Value = "9999";
+```
+
+:::note
+暂时只有单元格的 `Value` 支持修改，其他的都只实现了 `get`
+:::
+
+## 保存修改
+
+对单元格的 `Value` 进行修改之后，可以使用 `reader.Save()` 进行保存
+
+```csharp
+reader[1, 0].Value = 2333;
+reader[1, 1].Value = "9999";
+// 保存到打开这个reader时所使用的文件或者流
+reader.Save();
+// 保存到指定路劲
+reader.SaveTo(path);
+// 保存到指定的流
+reader.SaveTo(stream);
+// 直接获取一个新的流
+using var streamFromReader =  reader.GetStream();
+```
+
+:::tip
+直接使用 Save() 会将修改保存到原来的文件或者流中
+
+如果不想影响到原文件，可以使用 SaveTo 的操作保存到新的文件中去
+
+这些保存都是覆盖式保存，无论指定的文件是否有内容，都会将其清空然后覆盖
+:::
+
+## 没有原文件?
+
+:::tip
+没有文件或者流也可以创建 `reader`，现在的实现会以一个空的流创建空的 `reader`
+:::
+
+```csharp
+using var reader = new NPOICellRead();
+reader[1, 0].Value = 2333;
+reader[1, 1].Value = "9999";
+reader.SaveTo(path);
+reader.SaveTo(stream);
+```
+
+:::note
+由于没有实际文件或者流的支撑，所以直接使用 Save()将无事发生
+:::
+
+## 实现了 IEnumerable
+
+:::note
+`IExcelCellRead` 和 `IExcelRead` 一样都实现了 IEnumerable 接口
+:::
+
+```csharp
+IExcelCellRead reader = new MiniCellRead(path);
+reader.Count();
+var IEnumerable<IReadCell> firstData = reader.First();
+var IEnumerable<IReadCell> lastData = reader.Last();
+var IEnumerable<IReadCell> skipOne = reader.Skip(1).First()
+```
+
+:::tip
+由于实现了 `IEnumerable`，所以也可以使用一些 `Collapsenav.Net.Tool` 的方法
+:::
+
+```csharp
+IExcelCellRead reader = new MiniCellRead(path);
+var IEnumerable<IReadCell> mergeData = reader.Merge()
+```
+
+:::caution
+由于实现问题，有些操作无法使用，比如 `AddRange` 之类存在修改操作的方法
+
+后面可能会做这些方便的实现
+:::

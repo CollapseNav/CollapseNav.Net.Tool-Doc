@@ -1,6 +1,7 @@
 ---
 sidebar_position: 2
 ---
+
 # IExcelRead
 
 :::info
@@ -40,7 +41,7 @@ public interface IExcelRead : IExcelRead<string> { }
 最佳实践中的导入功能就是依据 IExcelRead 实现的
 :::
 
-## 获取IExcelRead实例
+## 获取 IExcelRead 实例
 
 :::note
 现阶段拥有 `NPOIExcelRead EPPlusExcelRead MiniExcelRead` 三种实现
@@ -92,4 +93,37 @@ IEnumerable<string> col = read["Column"];
 :::
 :::danger
 MiniExcelRead 由于 MiniExcel 的实现问题，在获取超出原表格范围的单元格数据时，可能会出现异常
+:::
+
+## 实现了 IEnumerable
+
+:::note
+花了点时间实现了 IEnumerable 接口
+
+数据类型为 `IEnumerable<string>`
+
+现在 `IExcelRead` 支持使用 First() Last() 等集合方法了!
+:::
+
+```csharp
+IExcelRead reader = new MiniExcelRead(path);
+reader.Count();
+var IEnumerable<string> firstData = reader.First();
+var IEnumerable<string> lastData = reader.Last();
+var IEnumerable<string> skipOne = reader.Skip(1).First()
+```
+
+:::tip
+由于实现了 `IEnumerable`，所以也可以使用一些 `Collapsenav.Net.Tool` 的方法
+:::
+
+```csharp
+IExcelRead reader = new MiniExcelRead(path);
+var IEnumerable<string> mergeData = reader.Merge()
+```
+
+:::caution
+由于实现问题，有些操作无法使用，比如 `AddRange` 之类存在修改操作的方法
+
+后面可能会做这些方便的实现
 :::
