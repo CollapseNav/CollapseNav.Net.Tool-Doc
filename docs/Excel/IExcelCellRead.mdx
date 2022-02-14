@@ -1,0 +1,105 @@
+---
+sidebar_position: 3
+---
+
+# IExcelCellRead
+
+:::note
+之前的 `IExcelRead` 只能做读取操作，并且会将所有数据都读为 `string`
+
+但是这种操作并不适合所有的使用场景
+
+在我整合导出相关功能的时候就发现了不足
+
+于是为了统一导出操作，做了 `IExcelCellRead`
+:::
+
+## 接口定义
+
+:::info
+`IExcelCellRead` 相关的接口定义类似下面这样
+:::
+
+```csharp
+public interface IExcelCellRead : IDisposable
+{
+    IEnumerable<IReadCell> this[string field] { get; }
+    IEnumerable<IReadCell> this[long row] { get; }
+    IReadCell this[long row, long col] { get; }
+    IReadCell this[string field, long row] { get; }
+    IEnumerable<string> Headers { get; }
+    IDictionary<string, int> HeadersWithIndex { get; }
+    long RowCount { get; }
+}
+public interface IReadCell
+{
+    int Row { get; }
+    int Col { get; }
+    string StringValue { get; }
+    Type ValueType { get; }
+    object Value { get; set; }
+}
+public interface IReadCell<T> : IReadCell
+{
+    T Cell { get; }
+}
+```
+
+:::tip
+与之前的 `IExcelRead` 类似，但是不会再将索引器的返回值强制转为 `string`
+
+`IReadCell` 会提供更多的单元格信息
+
+也能支持后续更多的扩展
+:::
+
+## 获取 IExcelCellRead 实例
+
+:::note
+现阶段拥有 `NPOICellRead EPPlusCellRead MiniCellRead` 三种实现
+:::
+
+```csharp
+using IExcelCellRead reader = new NPOICellRead(filePath);
+using IExcelCellRead reader = new EPPlusCellRead(filePath);
+using IExcelCellRead reader = new MiniCellRead(filePath);
+```
+
+:::tip
+为了降低心智负担, `IExcelCellRead` 有静态方法 `GetCellRead`, 用以自动生成 `IExcelCellRead` 的实例
+
+5M 以上的自动使用 `MiniExcel` 作为实现, 其他时候随机使用 EPPlus 或 NPOI
+:::
+
+```csharp
+using IExcelCellRead reader = IExcelCellRead.GetCellRead(filePath);
+```
+
+:::caution
+混用可能会产生意想不到的 bug
+:::
+
+## 使用
+
+### 获取单元格的值
+
+```csharp
+// 第 1 行 第 6 列
+IReadCell value = reader[0, 5];
+```
+
+### 获取行
+
+```csharp
+IEnumerable<IReadCell> row = read[0];
+```
+
+### 获取列
+
+:::info
+我认为"列"与"行"不同, 是不适合直接用下标去获取的, 所以设计成传有"含义"的列名称
+:::
+
+```csharp
+IEnumerable<IReadCell> col = read["Column"];
+```
