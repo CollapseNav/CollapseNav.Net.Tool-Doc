@@ -180,7 +180,7 @@ var IEnumerable<IReadCell> skipOne = reader.Skip(1).First()
 
 ```csharp
 IExcelCellRead reader = new MiniCellRead(path);
-var IEnumerable<IReadCell> mergeData = reader.Merge()
+IEnumerable<IReadCell> mergeData = reader.Merge()
 ```
 
 :::caution
