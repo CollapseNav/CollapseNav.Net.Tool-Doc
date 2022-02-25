@@ -9,7 +9,7 @@ const config = {
   title: 'Collapsenav.Net.Tool',
   tagline: '我觉得可以提升(我自己的)开发效率的dotnet工具包',
   url: 'https://your-docusaurus-test-site.com',
-  baseUrl: '/',
+  baseUrl: '/Tool/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
