@@ -32,6 +32,38 @@ empty.IsNull("233"); // "233"
 notEmpty.IsEmpty("233"); // "NotEmpty"
 ```
 
+### Add/AddIf
+
+:::note
+字符串拼接
+:::
+
+```csharp
+string str = string.Empty;
+str = str.Add("1"); // "1"
+str = str.AddIf(true,"2") // "12"
+str = str.AddIf(false,"3"); // "12"
+
+str = string.Empty;
+str = str
+.Add("1")
+.AddIf(true,"2")
+.AddIf(false,"3"); // "12"
+```
+
+:::tip
+同时 StringBuilder 也有相似扩展
+:::
+
+```csharp
+StringBuilder sb = new();
+sb
+.AddIf("1")
+.AddIf("Not Empty","2")
+.AddIf(false,"3")
+.AddIf("","4"); // "12"
+```
+
 ### ToChinese
 
 :::note
