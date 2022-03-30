@@ -28,6 +28,9 @@ const config = {
         },
         blog: {
           showReadingTime: true,
+          postsPerPage: 'ALL',
+          blogTitle: '我的博客',
+          blogDescription: '兴趣使然做的博客',
           // Please change this to your repo.
           // editUrl: 'https://github.com/CollapseNav/Collapsenav.Net.Tool',
         },
@@ -41,6 +44,9 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      colorMode: {
+        defaultMode: 'dark',
+      },
       navbar: {
         title: 'Docs',
         logo: {
@@ -54,7 +60,7 @@ const config = {
             position: 'left',
             label: 'Doc',
           },
-          // { to: '/blog', label: 'Blog', position: 'left' },
+          { to: '/blog', label: 'Blog', position: 'left' },
           {
             href: 'https://github.com/CollapseNav/Collapsenav.Net.Tool',
             label: 'GitHub',
