@@ -15,7 +15,6 @@ const config = {
   favicon: 'img/favicon.ico',
   organizationName: 'CollapseNav', // Usually your GitHub org/user name.
   projectName: 'CollapseNav Docs', // Usually your repo name.
-
   presets: [
     [
       'classic',
@@ -27,7 +26,7 @@ const config = {
           // editUrl: 'https://github.com/CollapseNav/Collapsenav.Net.Tool',
         },
         blog: {
-          showReadingTime: true,
+          // showReadingTime: true,
           postsPerPage: 'ALL',
           blogTitle: '我的博客',
           blogDescription: '兴趣使然做的博客',
@@ -38,7 +37,7 @@ const config = {
           customCss: require.resolve('./src/css/custom.css'),
         },
       }),
-    ],
+    ]
   ],
 
   themeConfig:
@@ -56,9 +55,15 @@ const config = {
         items: [
           {
             type: 'doc',
-            docId: 'intro',
+            docId: 'pack_intro',
             position: 'left',
             label: 'Doc',
+          },
+          {
+            type: 'docSidebar',
+            position: 'left',
+            sidebarId: 'markdown',
+            label: 'MarkDown',
           },
           { to: '/blog', label: 'Blog', position: 'left' },
           {
