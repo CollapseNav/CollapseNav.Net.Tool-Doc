@@ -5,7 +5,7 @@ RUN yarn config set registry https://registry.npmmirror.com/ && yarn install
 
 FROM initnode as build
 WORKDIR /src
-COPY ./package.json ./package.json
+COPY ./ ./
 RUN yarn run build
 
 FROM nginx:alpine
