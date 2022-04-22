@@ -28,7 +28,7 @@ notEmptyArray.IsEmpty(); // false
 无需再对集合做空判断
 :::
 
-### ContainAnd
+### AllContain
 
 :::note
 判断 A 集合是否包含 B 集合中的所有元素
@@ -36,11 +36,11 @@ notEmptyArray.IsEmpty(); // false
 
 ```csharp
 string[] strList = { "1", "2", "3", "4", "5", "6" };
-strList.ContainAnd(new[] { "2", "6" }); // True
-strList.ContainAnd("2", "8", "10", "11", "20"); // False
+strList.AllContain(new[] { "2", "6" }); // True
+strList.AllContain("2", "8", "10", "11", "20"); // False
 
-strList.ContainAnd((x, y) => x == y, new[] { "2", "6" }); // True
-strList.ContainAnd((x, y) => x == y, "2", "8", "10", "11", "20"); // False
+strList.AllContain((x, y) => x == y, new[] { "2", "6" }); // True
+strList.AllContain((x, y) => x == y, "2", "8", "10", "11", "20"); // False
 ```
 
 :::tip
@@ -49,11 +49,7 @@ A 集合 **全部** 包含了 B 集合中的元素时为 `True`
 可传入委托进行自定义判断
 :::
 
-:::caution
-有极大可能会修改名称
-:::
-
-### ContainOr
+### HasContain
 
 :::note
 判断 A 集合是否包含 B 集合中的元素
@@ -61,23 +57,19 @@ A 集合 **全部** 包含了 B 集合中的元素时为 `True`
 
 ```csharp
 string[] strList = { "1", "2", "3", "4", "5", "6" };
-strList.ContainOr(new[] { "2", "6" }); // True
-strList.ContainOr(new[] { "2", "8" }); // True
-strList.ContainOr("7", "8"); // False
+strList.HasContain(new[] { "2", "6" }); // True
+strList.HasContain(new[] { "2", "8" }); // True
+strList.HasContain("7", "8"); // False
 
-strList.ContainOr((x, y) => x == y, new[] { "2", "6" }); // True
-strList.ContainOr((x, y) => x == y, new[] { "2", "8" }); // True
-strList.ContainOr((x, y) => x == y, "7", "8"); // False
+strList.HasContain((x, y) => x == y, new[] { "2", "6" }); // True
+strList.HasContain((x, y) => x == y, new[] { "2", "8" }); // True
+strList.HasContain((x, y) => x == y, "7", "8"); // False
 ```
 
 :::tip
 A 集合 **部分** 包含了 B 集合中的元素时为 `True`
 
 可传入委托进行自定义判断
-:::
-
-:::caution
-有极大可能会修改名称
 :::
 
 ### Merge

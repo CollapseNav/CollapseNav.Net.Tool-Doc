@@ -1,7 +1,12 @@
-FROM node:alpine as build
+FROM node:alpine as initnode
 WORKDIR /src
-COPY ./ ./
-RUN yarn config set registry https://registry.npmmirror.com/ && yarn && yarn run build
+COPY ./package.json ./package.json
+RUN yarn config set registry https://registry.npmmirror.com/ && yarn install
+
+FROM initnode as build
+WORKDIR /src
+COPY ./package.json ./package.json
+RUN yarn run build
 
 FROM nginx:alpine
 WORKDIR /usr/share/nginx/html
