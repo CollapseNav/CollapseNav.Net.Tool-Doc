@@ -78,3 +78,21 @@ Dictionary<int, string> dict = new()
 };
 string value = dict.GetAndRemove(1);
 ```
+
+### Deconstruct
+
+:::note
+字典解构, 将字典解构为元组
+:::
+
+```csharp
+Dictionary<int, string> dict = new()
+{
+    { 1, "1" },
+    { 2, "2" },
+    { 3, "3" },
+};
+foreach (var (value, index) in dict.Deconstruct())
+    ;
+```
+
