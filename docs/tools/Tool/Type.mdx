@@ -47,7 +47,9 @@ boolValue.IsBaseType(); // True
 ```
 
 :::caution
-DateTime,Guid 等也被我当成 BaseType 了
+并没有使用类型的 `IsPrimitive` 进行判断, 因为 `DateTime`,`Guid` 等也被我当成 BaseType 了
+
+所以实际使用的时候可能会有奇奇怪怪的问题
 :::
 
 ### PropNames
@@ -68,7 +70,7 @@ props = typeof(PropTest0).PropNames(0);
 ```
 
 :::tip
-可针对嵌套类型设定递归深度
+使用递归实现, 可针对嵌套类型设定递归深度
 
 默认深度为 0
 :::
@@ -93,6 +95,21 @@ obj.GetValue("Prop1"); // "1"
 只做了获取公共属性值的部分，没有获取私有字段的功能，后期可能会考虑增加
 :::
 
+:::tip
+可以获取嵌套类型的属性值
+:::
+
+```csharp
+var obj = new PropTest1
+{
+    Prop1 = "1",
+    Prop = new(){
+        Prop1 = "1.1",
+    }
+};
+obj.GetValue("Prop.Prop1"); // "1.1"
+```
+
 ### SetValue
 
 :::note
@@ -108,6 +125,21 @@ data.SetValue("Prop1", "233");
 :::caution
 只做了修改公共属性值的部分，没有修改私有字段的功能，后期可能会考虑增加
 :::
+
+:::tip
+可以设置嵌套类型的属性值
+:::
+
+```csharp
+var obj = new PropTest1
+{
+    Prop1 = "1",
+    Prop = new(){
+        Prop1 = "1.1",
+    }
+};
+obj.SetValue("Prop.Prop1", "1.2");
+```
 
 ### AttrValues
 
@@ -142,3 +174,49 @@ attrValues.Count; // 2
 attrValues.First().Value.Field; // "123"
 attrValues.Last().Value.Field; // "233"
 ```
+
+### GetAnonymousValue
+
+:::note
+获取匿名类型的属性值
+:::
+
+```csharp
+var obj = new
+{
+    Index = 233,
+    Name = "",
+    Item = new
+    {
+        Index = 0,
+        Name = "2333"
+    }
+};
+(int)obj.GetValue("Index"); // 233
+(int)obj.GetValue("Item.Name"); // "2333"
+```
+
+### SetAnonymousValue
+
+:::note
+设置匿名类型的属性值
+:::
+
+```csharp
+var obj = new
+{
+    Index = 0,
+    Name = "",
+    Item = new
+    {
+        Index = 0,
+        Name = ""
+    }
+};
+obj.SetAnonymousValue("Index", 233);
+obj.SetAnonymousValue("Item.Index", 233);
+```
+
+:::caution
+虽然做出来了, 但感觉可能并没有什么用
+:::
