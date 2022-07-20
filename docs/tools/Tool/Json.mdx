@@ -91,3 +91,31 @@ UserInfoTwo user2 = user.JsonMap<UserInfoTwo>();
 :::tip
 在某些情况下还能当深拷贝使用
 :::
+
+
+### JsonNode
+
+:::note
+当拿到的 json 对象比较复杂时, 相比于构建对应的 class, 使用 JsonNode 更加方便
+:::
+
+```csharp
+string userInfo = @"
+[
+    {
+        ""userName"": ""ABCD"",
+        ""age"": 23
+    }
+]";
+JsonNode userNode = userInfo.ToJsonNode();
+JsonArray userArray = userNode.ToJsonArray();
+JsonObject userObject = userNode.ToJsonObject();
+```
+
+:::tip
+有些时候一个复杂的json是由很多系统已有的小对象组成, 我们可以只转换其中的一部分
+:::
+
+```csharp
+var userInfos = userNode.ToObj<IEnumerable<UserInfo>>();
+```

@@ -180,6 +180,10 @@ lValue.PadRight(6, item => item + 1, '-'); // "23334-"
 
 :::note
 对字符串集合的 StartsWit&&EndsWith 判断
+
+All** 全符合则为 true
+
+Has** 有一个符合则为 true
 :::
 
 ```csharp
@@ -224,17 +228,6 @@ var masked = origin.AutoMask(); // Col*ool
 可用性可能不大高
 :::
 
-### GetDomain
-
-:::note
-获取 Url 中的域名部分
-:::
-
-```csharp
-string url = "https://www.github.com";
-var domain = url.GetDomain(); // www.github.com
-```
-
 ### Base64
 
 :::note
@@ -260,3 +253,48 @@ var filePath = "./xxxx.txt";
 using var fs = filePath.OpenReadShareStream();
 var base64String = fs.StreamToBase64();
 ```
+
+
+### Contain
+
+:::note
+字符串是否包含指定的字符串
+
+All** 全符合则为 true
+
+Has** 有一个符合则为 true
+:::
+
+```csharp
+string temp = "123456789";
+temp.AllContain("789", "567"); // True
+temp.HasContain("789", "567"); // True
+temp.AllContain("789", "898"); // false
+temp.HasContain("789", "898"); // True
+```
+
+:::tip
+也可以直接传入集合, 此时可以选择忽略大小写
+:::
+
+```csharp
+string temp = "ABCD";
+temp.AllContain(new[] { "ABc", "cD" }, ignoreCase: true); // True
+temp.AllContain(new[] { "ABc", "cD" }, ignoreCase: false); // False
+temp.HasContain(new[] { "ABc", "CD" }, ignoreCase: true); // True
+temp.HasContain(new[] { "ABc", "CD" }, ignoreCase: false); // True
+temp.HasContain(new[] { "ABcE", "cD" }, ignoreCase: false); // False
+```
+
+### AddBegin&AddEnd
+
+:::note
+给字符串集合添加前缀后缀
+:::
+
+```csharp
+string[] strs = new[] { "2", "3" };
+strs.AddBegin("999"); // ["9992", "9993"]
+strs.AddEnd("111"); // ["9992111", "9993111"]
+```
+

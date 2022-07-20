@@ -1,0 +1,33 @@
+---
+title: 其他
+sidebar_position: 99
+---
+
+## CronTool
+
+:::note
+做Quartz的时候被cron表达式折磨了很多回, 于是写个简单的工具
+:::
+
+```csharp
+var cron = CronTool.CreateCron(10);
+// 0/10 * * * * ?
+```
+
+:::tip
+当间隔为比较奇葩的数字时, 就需要多个表达式来描述, 比如 "每隔70秒执行一次" 的情况下就需要6条表达式
+:::
+
+```csharp
+var crons = CronTool.CreateCrons(70);
+/*
+    10 1/7 * * * ?
+    20 2/7 * * * ?
+    30 3/7 * * * ?
+    40 4/7 * * * ?
+    50 5/7 * * * ?
+    0 0/7 * * * ?
+*/
+```
+
+

@@ -1,0 +1,34 @@
+---
+sidebar_position: 1
+---
+
+# Collapsenav.Net.Tool.Quartz
+
+[nuget](https://www.nuget.org/packages/Collapsenav.Net.Tool.Quartz)
+
+Quartz.Net 是个被广泛使用的类库, 但我在使用的时候感觉配置任务的过程太繁琐, 所以简单写了个扩展
+
+[Demo](https://github.com/CollapseNav/Collapsenav.Net.Tool/tree/main/Demo/QuartzDemo)
+
+
+```csharp
+// 普通Job
+public class FirstJob : IJob
+{
+    public FirstJob() { }
+    public Task Execute(IJobExecutionContext context)
+    {
+        Console.WriteLine($"{DateTime.Now.ToDefaultTimeString()}FirstJob");
+    }
+}
+// 依赖注入Job
+public class DIJob : IJob
+{
+    private readonly DIModel _model;
+    public DIJob(DIModel model){_model = model;}
+    public Task Execute(IJobExecutionContext context)
+    {
+        Console.WriteLine(_model.Name);
+    }
+}
+```
