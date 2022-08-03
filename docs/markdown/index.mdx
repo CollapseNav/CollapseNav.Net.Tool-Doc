@@ -1,190 +1,34 @@
 ---
-title: Markdown 的简单介绍
+title: Markdown 环境配置
 sidebar_position: 1
 ---
 
-# Markdown 的简单介绍
+# Markdown环境配置
 
-## 前期准备
+## 安装 vscode
 
-### 安装 vscode
+强烈推荐使用 [vscode](https://code.visualstudio.com/)
 
-不多说了，先去装个 [vscode](https://code.visualstudio.com/)
+开源免费跨平台, 而且有很多插件可以用, 体验很棒
 
-### 及其插件
+如果直接下载速度太慢, 可以把地址下载地址换成国内的cdn
 
-使用快捷键 `ctrl` + `shift` + `X` 打开插件页，然后搜索
+复制原来的下载地址, 将域名部分替换为`https://vscode.cdn.azure.cn`即可
 
-或者点击左侧的
+## 安装markdown插件
 
-![](../../static/img/left.png)
+虽然原始状态下的vscode也可以预览markdown文件, 但装了插件会更好用一些
 
-图标打开插件页，然后搜索
+使用快捷键 `ctrl` + `shift` + `x` 打开插件页, 然后搜索以下插件并安装(也可以直接点击插件名字跳转安装)
 
-1. **Markdown All in One**
-2. **Markdown Preview Enhanced** (一些特殊效果的实现就靠这个插件)
-3. **markdownlint** (主要是用来语法提示之类的)
-4. **Markdown Preview Mermaid Support** (拓展画图功能)
-5. **Markdown TOC** (生成标题列表，点击了能够跳转的那种)
-6. **Markdown Extended** (虽然不记得有啥用了，但是装就好了)
+1. [**Markdown All in One**](vscode:extension/yzhang.markdown-all-in-one)
+2. [**Markdown Preview Enhanced**](vscode:extension/shd101wyy.markdown-preview-enhanced) (可以获得更加酷炫的预览效果)
+3. [**markdownlint**](vscode:extension/DavidAnson.vscode-markdownlint) (主要是用来语法提示之类的,可装可不装)
+4. [**Markdown Preview Mermaid Support**](vscode:extension/bierner.markdown-mermaid) (拓展画图功能)
+6. [**Markdown Extended**](vscode:extension/jebbs.markdown-extended) (虽然不记得有啥用了，但是装就好了)
 
 ## Markdown文件
 
 Markdown 文件的拓展后缀为 `.md`
 直接新建一个文件名为 `XXX.md` 的文件即可开始写作！
 
-## 基础语法
-
-### 基础语法:标题
-
-```text
-# 一级标题
-
-## 二级标题
-
-### 三级标题
-
-#### 四级标题
-
-##### 五级标题
-
-###### 六级标题
-
-```
-
-生成的标题可以直接作为跳转的"锚"使用
-~~一般来说，必须要有个一级标题顶在最上面~~
-
-### 基础语法:普通文本
-
-```text
-普通文本直接输入即可
-```
-
-普通文本直接输入即可
-如果需要首行缩进的话,需要使用`&emsp;`---->em space
-~~不要想着用两个空格做出首行缩进的效果，在html的世界里，你加多少空格都是没用的~~
-
-
-```text
-&emsp;&emsp;首行缩进两个空格得这样
-```
-
-&emsp;&emsp;首行缩进两个空格得这样
-实际上在正常的markdown里面不存在"首行缩进"这种概念,只不过可以通过添加空格达到类似的效果
-
-### 基础语法:加粗、倾斜、删除线
-
-```text
-**加粗**
-*倾斜*
-~~删除线~~
-```
-
-**加粗**
-*倾斜*
-~~删除线~~
-
-其实还有个加粗倾斜
-***加粗倾斜***
-实际用起来有点鬼畜
-
-### 基础语法:列表
-
-```text
-注意内容 {T} 之前需要加空格
-* T
-  - TT
-    * TTT
-  * TT
-* T
-
-1. T
-   1. TT
-       1. TTT
-   2. TT
-2. T
-
-* T
-  1. TT
-  2. TT
-     * TTT
-```
-
-* T
-  - TT
-    * TTT
-  * TT
-* T
-
-1. T
-   1. TT
-       1. TTT
-   2. TT
-2. T
-
-* T
-  1. TT
-  2. TT
-     * TTT
-
-### 基础语法:表格
-
-```text
-| 左对齐 |     右对齐 |     居中     | ... |
-| :----- | ---------: | :----------: | --- |
-| 内容1  |      内容2 |    内容3     | ... |
-| 内容4  | *文字倾斜* | **文字加粗** | ... |
-```
-:::caution
-合并单元格的效果并不适用于所有markdown的版本
-:::
-| 左对齐 |     右对齐 |     居中     | ... |
-| :----- | ---------: | :----------: | --- |
-| 内容1  |      内容2 |    内容3     | ... |
-| 内容4  | *文字倾斜* | **文字加粗** | ... |
-
-`|---|---|`之上的内容为表头,之下的内容为表格的数据主题
-合并单元格可以通过
-
-* `>`将本单元格并入右侧单元格
-* `^`将本单元格并入上方单元格
-* 直接空着会并入左侧单元格
-
-实现
-表头亦可进行合并操作
-
-
-### 基础语法:待做 (todo list)
-
-```text
-- [ ] 待做内容
-- [X] 已完成内容
-```
-
-- [ ] 待做内容
-- [X] 已完成内容
-
-### 基础语法:引入资源
-
-```text
-![图片描述](图片路径)
-```
-
-![可以不写](../../static/img/srcJpg.jpg) ![也可以放gif](../../static/img/srcGif.gif)
-
-~~实际上也可以直接引入视频，但是会有太多不能自定义的地方~~
-并不推荐直接引入视频(虽然可以)
-
-### 基础语法:链接
-
-```text
-[预览时能看到的内容](http://xxxx.xxxx.com)
-```
-
-[这是一个跳转到bing的链接](http://cn.bing.com)
-
-## 写在最后
-
-如果有兴趣的话
-还是学学 `HTML/CSS/JS` 之类的东西

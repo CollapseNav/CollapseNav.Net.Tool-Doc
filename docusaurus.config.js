@@ -15,6 +15,7 @@ const config = {
   favicon: 'img/favicon.ico',
   organizationName: 'CollapseNav', // Usually your GitHub org/user name.
   projectName: 'CollapseNav Docs', // Usually your repo name.
+  plugins: ['mdx-mermaid'],
   presets: [
     [
       'classic',
@@ -22,6 +23,7 @@ const config = {
       ({
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
+          remarkPlugins: [require('mdx-mermaid')],
           // Please change this to your repo.
           // editUrl: 'https://github.com/CollapseNav/Collapsenav.Net.Tool',
         },
