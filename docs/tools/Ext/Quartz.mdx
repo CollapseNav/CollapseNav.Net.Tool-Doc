@@ -1,16 +1,19 @@
 ---
 sidebar_position: 1
+title: Quartz
 ---
 
 # Collapsenav.Net.Tool.Quartz
 
-[nuget](https://www.nuget.org/packages/Collapsenav.Net.Tool.Quartz)
+[nuget-Collapsenav.Net.Tool.Quartz](https://www.nuget.org/packages/Collapsenav.Net.Tool.Quartz)
 
-Quartz.Net 是个被广泛使用的类库, 但我在使用的时候感觉配置任务的过程太繁琐, 所以简单写了个扩展
+[GitHub-Demo](https://github.com/CollapseNav/Collapsenav.Net.Tool/tree/main/Demo/QuartzDemo)
 
-[Demo](https://github.com/CollapseNav/Collapsenav.Net.Tool/tree/main/Demo/QuartzDemo)
+Quartz.Net 是个被广泛使用的类库, 但我在使用的时候感觉配置任务的过程太繁琐, 特别不方便, 所以简单写了个扩展
 
 
+
+## 定义Job
 
 ```csharp
 // 普通Job
@@ -32,4 +35,57 @@ public class DIJob : IJob
         Console.WriteLine(_model.Name);
     }
 }
+```
+
+## 注册
+
+在 asp.net core 下注册使用是非常方便的
+
+```csharp
+services
+// 注册DIJob需要的DIModel
+.AddSingleton(new DIModel{Name = "New DI Model"})
+// 从现在开始, 每10秒执行一次FirstJob
+.AddJob<FirstJob>(10)
+// 每15秒执行一次DIJob
+.AddJob<DIJob>("0/15 * * * * ?")
+// 注册默认的 HostedService, 自动启动之前注册的Job
+.AddDefaultQuartzService();
+```
+
+通过 `AddJob` 注册任务, 同时会注册支持依赖注入的 `DIJobFactory`
+
+最后使用 `AddDefaultQuartzService` 注册一个 `HostedService`, 它会自动启动所有注册的Job
+
+在引入了我这个包的情况下, 只需要创建对应的Job, 然后根据需要进行注册即可
+
+### 其他的注册方式
+
+:::tip
+可能有些项目还是要用xml进行配置
+:::
+
+```csharp
+services.AddJobsFromXml("quartz.xml");
+.AddDefaultQuartzService();
+```
+
+:::tip
+如果需要开启多个定时任务, 可以使用 `AddJobs`
+:::
+```csharp
+services
+// 从当前开始每 10,20,30 秒执行
+.AddJobs<FirstJob>(10, 20, 30)
+// 每70秒执行一次, 使用 CronTool.CreateCrons 可以生成对应的Cron表达式
+.AddJobs<FirstJob>(CronTool.CreateCrons(70))
+.AddDefaultQuartzService();
+```
+
+:::tip
+支持在 `AddDefaultQuartzService` 中注册
+:::
+```csharp
+services
+.AddDefaultQuartzService(builder => builder.AddJob<FirstJob>(10));
 ```
