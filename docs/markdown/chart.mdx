@@ -3,5 +3,45 @@ title: Markdown 画图
 sidebar_position: 3
 ---
 
+## 类图
+
+```text
+    ```mermaid
+    classDiagram
+
+    class Person{
+        +SayHelloWorld(HelloWorld)
+    }
+    class HelloWorld{
+        +World World
+        -string Greetings
+        +HelloWorld()
+    }
+    class World{
+        +string WorldName
+    }
+
+    Person ..> HelloWorld
+    HelloWorld ..> World
+    ```
+```
 
 
+```mermaid
+classDiagram
+
+class Person{
+    +SayHelloWorld(HelloWorld)
+}
+class HelloWorld{
+    +World World
+    -string Greetings
+    +HelloWorld()
+}
+class World{
+    +string WorldName
+}
+
+Person ..> HelloWorld
+HelloWorld ..> World
+```

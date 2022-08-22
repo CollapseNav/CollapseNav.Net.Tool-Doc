@@ -64,6 +64,12 @@ const config = {
           {
             type: 'docSidebar',
             position: 'left',
+            sidebarId: 'knowledge',
+            label: '技术栈',
+          },
+          {
+            type: 'docSidebar',
+            position: 'left',
             sidebarId: 'markdown',
             label: 'MarkDown',
           },

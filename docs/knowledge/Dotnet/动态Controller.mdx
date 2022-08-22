@@ -1,0 +1,239 @@
+---
+title: 动态Controller
+sidebar_position: 1
+---
+# 一些动态生成controller的问题
+
+## 前言
+
+之前近在写包, 一开始封装了仓储`Repository`用于操作数据库, 然后为了快速开发一些业务简单的接口, 通过`QueryController` , `ModifyController` , `CrudController` 配合泛型提供默认实现, 在添加接口的时候只需要新建一个 Controller, 然后继承
+
+```csharp
+public class TestController : QueryRepController<int?, TestEntity, TestEntityGet>
+{
+    public TestController(IQueryRepository<int?, TestEntity> repository) : base(repository)
+    {
+    }
+}
+```
+
+即可实现简单的增删改查功能
+
+![queryapi](../../../static/img/queryapi.png)
+
+看到 `TestController` 这**单薄**的实现, 我突然有个想法
+
+:::tip
+**既然这个controller写得这么简单, 为什么我不能尝试靠代码去生成呢!?!**
+:::
+
+## 动态新建Type
+
+经过简单的思考, 我认为第一步应该是创建 `Type`
+
+:::note
+尝试的方案一 -- `typeof`
+:::
+
+最开始尝试注册一堆 `typeof(QueryRepController<int?, TestEntity, TestEntityGet>)`, 然后动态创建路由
+
+但我搞了半天也没发现**asp.net**里面有相关的功能, 也不能确定这样生成的 `Type` 是正常的, 感觉这里面能让我栽进去的坑有很多
+
+虽然可以自己重新实现一套路由......后面还得搞日志, 拦截器什么的 ?!?
+
+我废那劲干嘛, 于是放弃
+
+:::note
+尝试的方案二 -- **Source Generator** 
+:::
+
+之前就听说C#有 **Source Generator**, 可以在编译时直接生成代码
+
+还听说 `AutoMapper` 就用了这种技术(也不知道是真是假)
+
+然后决定研究一下......
+
+一个周末的时间让我了解到, 这东西好像没多少人用啊, 相关资料少得可怜, 网上逛了两天, 除了说这东西很有用, 很香, 没找着多少对我有用的资料, 也可能是我太菜了不会用
+
+虽然最后生成了一个可以正常使用的 `Controller`, 但是与我的预期有极大的差距
+
+我期望的使用方式类似下面这种
+
+```csharp
+services.AddQueryRepController<int?, TestEntity, TestEntityGet>("Test");
+```
+
+在使用的时候可以**主动**通过注册的方式添加 Controller, 然后可以自由更改路由(比如把Test改为WTF)
+
+搞了两天感觉方向不对, 虽然 **Source Generator** 确实挺有意思的, 也有可以发挥的场景, 但至少不太符合我这时的需要
+
+:::note
+尝试的方案三 -- **Emit**
+:::
+
+从 **Source Generator** 中抽身后, 我又开始大海捞针式地寻找方案
+
+然后在 **[万能的stackoverflow](https://stackoverflow.com/questions/10090350/dynamically-create-type-and-call-constructor-of-base-class)** 上找到了可能的方案
+
+### 使用Emit撸IL
+
+说实话在这之前我从来没有听说过 dotnet 中的 `Emit`, 平时使用的反射也只是 `GetValue` `SetValue` 这样的, 这鬼东西真是让我 **大 开 眼 界**
+
+经过一番"艰苦"奋战后, 磕磕绊绊**憋**出了类似下面的代码
+
+```csharp
+public static IServiceCollection AddQueryRepController<TKey, T, GetT>(this IServiceCollection services, string route)
+where T : class, IBaseEntity<TKey> where GetT : IBaseGet<T>
+{
+    // 建一个 Assembly
+    AssemblyBuilder Ass = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("NewController"), AssemblyBuilderAccess.Run);
+    ModuleBuilder MB = Ass.DefineDynamicModule("NewController");
+    // 起个好听的名字
+    var typeName = $"{route}Controller";
+    // 使用QueryRepController<TKey, T, GetT>整一个builder
+    var typeBuilder = MB.DefineType(typeName, TypeAttributes.Class | TypeAttributes.Public, typeof(QueryRepController<TKey, T, GetT>), null);
+    // 添加一个构造函数,
+    var ctor = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard | CallingConventions.HasThis, new[] { typeof(IQueryRepository<TKey, T>) });
+    // 给这个构造函数编IL
+    var ilGenerator = ctor.GetILGenerator();
+    // 通过ILSpy反编译,然后抄il
+    ilGenerator.Emit(OpCodes.Ldarg, 0);
+    ilGenerator.Emit(OpCodes.Ldarg, 1);
+    ilGenerator.Emit(OpCodes.Call, typeof(QueryRepController<TKey, T, GetT>).GetConstructors()[0]);
+    ilGenerator.Emit(OpCodes.Nop);
+    ilGenerator.Emit(OpCodes.Nop);
+    ilGenerator.Emit(OpCodes.Ret);
+    // 创建这个新的 type
+    var type = typeBuilder.CreateType();
+    // 根据自己的情况注册到容器中
+    services.AddTransient(typeof(IQueryController<TKey, T, GetT>), type);
+    return services;
+}
+```
+
+以我的水平和能力, 做到这样已经是极限, 靠ILSpy反编译上面的 `TestController`, 抄了点代码(我抄我自己)
+
+现在可以使用
+
+```csharp
+services.AddQueryRepController<int?, TestEntity, TestEntityGet>("Test")
+```
+
+生成并注册一个 TestController 到容器中, 也可以正常获取实例
+
+但是程序就是无法**感知**到代码的**变化**, swagger 中也看不到新加的 Controller
+
+尝试进行请求, 最后也以 `404 Not Found` 失败告终
+
+于是再次陷入僵局
+
+
+## 使用ApplicationPartManager注册controller
+
+之前在逛园子的时候看到 Artech大佬的 [文章](https://www.cnblogs.com/artech/p/dynamic-controllers.html) , 当时看的时候感觉云里雾里的, 不知所云
+
+也尝试硬着头皮写, 但是没有能够坚持下去, 但我在完成以上步骤并且被卡住后, 再次看了大佬的文章, **豁然开朗!**
+
+> 为了让这些程序集成为应用的一个有效组成部分，程序集需要封装成ApplicationPart对象并利用ApplicationPartManager进行注册
+
+参考大佬的文章, 写了如下的实现
+
+`AddControllerChangeProvider`
+
+```csharp
+public class AddControllerChangeProvider : IActionDescriptorChangeProvider
+{
+    public static AddControllerChangeProvider Instance { get; } = new AddControllerChangeProvider();
+    public CancellationTokenSource TokenSource { get; private set; }
+    public bool HasChanged { get; set; }
+    public IChangeToken GetChangeToken()
+    {
+        TokenSource = new CancellationTokenSource();
+        return new CancellationChangeToken(TokenSource.Token);
+    }
+}
+```
+
+又有一个 `HostedService` 在注册完成后通过 `ApplicationPartManager` 更新注册信息
+
+`ChangeActionService`
+```csharp
+public class ChangeActionService : IHostedService
+{
+    private readonly ApplicationPartManager Part;
+    public ChangeActionService(IServiceScopeFactory scope)
+    {
+        Part = scope.CreateScope().ServiceProvider.GetService<ApplicationPartManager>();
+    }
+    public async Task StartAsync(CancellationToken cancellationToken)
+    {
+        Part.ApplicationParts.Add(new AssemblyPart( <可以直接使用之前的AssemblyBuilder> ));
+        AddControllerChangeProvider.Instance.HasChanged = true;
+        AddControllerChangeProvider.Instance.TokenSource.Cancel();
+        await Task.CompletedTask;
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        await Task.CompletedTask;
+    }
+}
+```
+
+之后使用时注册 `AddControllerChangeProvider` 和 `ChangeActionService`
+
+```csharp
+services.AddSingleton<IActionDescriptorChangeProvider>(AddControllerChangeProvider.Instance);
+services.AddHostedService<ChangeActionService>();
+```
+
+程序运行后会启动 `ChangeActionService`, 读取我之前生成controller时使用的 AssemblyBuilder, 注册生成的新的controller
+
+这时就已经可以在 swagger 中看到创建的 TestController 了, 并且也能正常进行访问
+
+
+## 最后贴一下代码
+
+之后经过一系列过度封装, 简单的代码如下(用了很多自己的封装, 看看就好...)
+
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddMysql<TestDbContext>("localhost", 3306, "test", "root", "pwd")
+// 将 TestDbContext 注册为默认的 DbContext
+.AddDefaultDbContext<TestDbContext>()
+.AddControllers();
+builder.Services
+// 注册一个 TestController
+.AddQueryRepController<long?, TestEntity, TestEntityGet>("Test")
+// 带注释的 Swagger
+.AddSwaggerWithComments();
+var app = builder.Build();
+app.UseSwagger().UseSwaggerUI();
+app.MapControllers();
+app.Run();
+public class TestDbContext : DbContext
+{
+    public DbSet<TestEntity> Tests { get; set; }
+    public TestDbContext(DbContextOptions<TestDbContext> options) : base(options)
+    { }
+}
+// 对应数据库中的 Test 表
+public class TestEntity : BaseEntity<long?>
+{
+    public string Code { get; set; }
+    public int? Number { get; set; }
+    public bool? IsTest { get; set; }
+}
+// 对应 TestEntity 的 TestEntityGet, 决定接口的查询规则
+public class TestEntityGet : BaseGet<TestEntity>
+{
+    public string? Code { get; set; }
+    public int? Number { get; set; }
+    public bool? IsTest { get; set; }
+}
+```
+
+虽然没啥卵用, 但是写出这段代码的那一刻, 我自己是爽了, 有没有用已经不重要的
+
+**自己写包, 最重要的就是让自己开心!**
