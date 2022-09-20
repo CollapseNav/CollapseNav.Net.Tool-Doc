@@ -49,7 +49,7 @@ const config = {
         defaultMode: 'dark',
       },
       navbar: {
-        title: 'Docs',
+        title: 'CollapseNav个人站',
         logo: {
           alt: 'My Site Logo',
           src: './img/logo.svg',
@@ -59,7 +59,7 @@ const config = {
             type: 'doc',
             docId: 'pack_intro',
             position: 'left',
-            label: 'Doc',
+            label: 'Tool文档',
           },
           {
             type: 'docSidebar',
@@ -71,7 +71,7 @@ const config = {
             type: 'docSidebar',
             position: 'left',
             sidebarId: 'markdown',
-            label: 'MarkDown',
+            label: 'MarkDown介绍',
           },
           { to: '/blog', label: 'Blog', position: 'left' },
           {
