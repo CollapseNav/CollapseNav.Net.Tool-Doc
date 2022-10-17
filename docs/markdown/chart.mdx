@@ -3,6 +3,8 @@ title: Markdown 画图
 sidebar_position: 3
 ---
 
+markdown 画图可以参考 [mermaid](https://mermaid-js.github.io/mermaid/#/)
+
 ## 类图
 
 ```text
@@ -45,3 +47,62 @@ class World{
 Person ..> HelloWorld
 HelloWorld ..> World
 ```
+
+## 流程图
+
+```txt
+    ```mermaid
+    flowchart TD
+        start([开始])
+        finish([结束])
+        func1[操作1]
+        cond1{判断1}
+        savedata[保存]
+        rollback[回退]
+        db[(数据库)]
+        savedata-->db
+        rollback-->db
+        start-->func1-->cond1-->|yes|savedata-->finish
+        cond1-->|no|rollback-->finish
+    ```
+```
+
+```mermaid
+flowchart TD
+    start([开始])
+    finish([结束])
+    func1[操作1]
+    cond1{判断1}
+    savedata[保存]
+    rollback[回退]
+    db[(数据库)]
+    savedata-->db
+    rollback-->db
+    start-->func1-->cond1-->|yes|savedata-->finish
+    cond1-->|no|rollback-->finish
+```
+
+## 饼图
+
+```txt
+    ```mermaid
+    pie title 一个饼图
+    "吃饭" : 2
+    "睡觉" : 8
+    "上班" : 8
+    "摸鱼" :  6
+    ```
+```
+
+```mermaid
+pie title 一个饼图
+"吃饭" : 2
+"睡觉" : 8
+"上班" : 8
+"摸鱼" :  6
+```
+
+
+
+
+
