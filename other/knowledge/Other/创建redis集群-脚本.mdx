@@ -1,0 +1,184 @@
+---
+title: 创建redis集群-脚本
+sidebar_position: 2
+---
+
+# 创建redis集群(脚本创建)
+
+## 准备工作
+
+暂时只写了 shell 脚本, 所以需要准备可以运行的环境
+
+在 **linux** 中可以 **直接运行**
+
+在 **windows** 中可以使用 **wsl** 或者 **gitbash** 之类的东西运行
+
+脚本会通过 **ssh远程执行一些脚本**
+
+:::tip
+建议先推送公钥到对应的节点上配置免密登录, 避免在执行过程中频繁输入密码
+:::
+
+## 进入正题
+
+大致的执行脚本如下:
+
+```shell
+#!/bin/bash
+hosts=''
+ports=''
+replicas=1
+isremove=0
+clusterstr=''
+defaultpath="$HOME/redis"
+
+while getopts ":t:p:r:hc" opt; do
+    case "$opt" in
+    "t")
+        IFS=','
+        hosts=($OPTARG)
+        IFS="$OLD_IFS"
+        ;;
+    "p")
+        IFS=','
+        ports=($OPTARG)
+        IFS="$OLD_IFS"
+        ;;
+    "r")
+        replicas="$OPTARG"
+        ;;
+    "c")
+        isremove=1
+        ;;
+    "h")
+        echo "
+        -t host 服务器ip,多个用 ',' 隔开
+        -p ports 开放的端口,多个用 ',' 隔开
+        -r replicas 默认为1，一主一从
+        -c 根据 -t 和 -p 清除redis容器和配置"
+        exit
+        ;;
+    ":")
+        echo "No argument value for option $OPTARG"
+        ;;
+    "?")
+        echo "Unknown option $OPTARG"
+        ;;
+    *)
+        echo "Unknown error while processing options"
+        ;;
+    esac
+done
+
+if [ $isremove = 1 ]; then
+    for i in "${hosts[@]}"; do
+        # 移除自动创建的redis配置
+        ssh root@"$i" >/dev/null 2>&1 <<EOF
+rm -rf $defaultpath
+exit
+EOF
+        for p in "${ports[@]}"; do
+            HOST=$i
+            PORT=$p
+            echo "(docker) remove redis-$p from $i"
+            ssh root@"$i" >/dev/null 2>&1 <<EOF
+docker rm -f redis-$p
+exit
+EOF
+        done
+    done
+    exit
+fi
+
+for i in "${hosts[@]}"; do
+    for p in "${ports[@]}"; do
+        HOST=$i
+        PORT=$p
+        clusterstr="$clusterstr $i:$p"
+        ssh root@"$i" >/dev/null 2>&1 <<EOF
+# 创建对应目录
+mkdir -p $defaultpath/$p/conf
+mkdir -p $defaultpath/$p/data
+
+# 生成配置文件
+echo "
+# redis端口
+port ${PORT}
+# 关闭保护模式
+protected-mode no
+# 开启集群
+cluster-enabled yes
+# 集群节点配置
+cluster-config-file nodes.conf
+# 超时
+cluster-node-timeout 5000
+# 集群节点IP
+cluster-announce-ip ${HOST}
+# 集群节点端口
+cluster-announce-port ${PORT}
+cluster-announce-bus-port 1${PORT}
+# 开启 appendonly 备份模式
+appendonly yes
+# 每秒钟备份
+appendfsync everysec
+# 对aof文件进行压缩时，是否执行同步操作
+no-appendfsync-on-rewrite no
+# 当目前aof文件大小超过上一次重写时的aof文件大小的100%时会再次进行重写
+auto-aof-rewrite-percentage 100
+# 重写前AOF文件的大小最小值 默认 64mb
+auto-aof-rewrite-min-size 64mb" > $defaultpath/$p/conf/redis.conf
+
+# 先移除旧容器
+docker rm -f redis-$p
+# 启动容器
+docker run -itd -p $p:$p -p 1$p:1$p \
+-v $defaultpath/$p/conf/redis.conf:/usr/local/etc/redis/redis.conf \
+-v $defaultpath/$p/data:/data \
+--restart always --name redis-$p \
+redis redis-server /usr/local/etc/redis/redis.conf
+
+exit
+EOF
+        echo "(docker) create redis-$p on $i"
+    done
+done
+
+# 建集群
+ssh -t root@"${hosts[0]}" >/dev/null 2>&1 <<EOF
+echo yes | docker exec -i redis-${ports[0]} redis-cli --cluster create $clusterstr --cluster-replicas $replicas
+exit
+EOF
+
+```
+
+以上是大致的执行脚本, 下面是运行脚本的实例
+
+```shell
+source xxxx.sh -t '{ip1},{ip2}' -p '{port1},{port2},{port3}' -r 1
+```
+
+`-t`参数为目标服务器的ip地址, 多个地址需要使用`,`隔开
+
+`-p`参数为redis容器使用的端口, 多个端口需要使用`,`隔开
+
+`-r`参数为redis每个主节点的从节点数量, 需要根据`-t`和`-p`进行调整, 默认为1, 可以不传
+
+脚本会在每个服务器上根据`-p`创建用于存放redis配置的目录, 然后写入对应的redis配置文件
+
+之后会在对应端口上根据`-p`创建容器
+
+以上的命令共会创建6个容器, 为一主一从的配置
+
+最后选中创建的第一个容器远程执行创建集群的命令, 会自动输入yes
+
+所以除了一开始编写命令的部分, 中间不需要其他操作
+
+## 其他注意点
+
+* 脚本使用 root 账号尝试远程执行脚本, 如果你的服务器配置了其他账号, 请自行更改脚本
+* 脚本会在 `$HOME` 下创建目录, 如果有冲突或者其他需要, 请自行更改脚本
+* 脚本会直接在对应目录下写入reids配置, 如果对其中的某些配置有其他要求, 请自行更改脚本
+* 如果创建过程中失败了, 可在原来的命令后面加上 `-c` 用来清理生成的目录和容器
+* 未完待续, 未来补充...
+
+

@@ -6,7 +6,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Collapsenav.Net.Tool',
+  title: 'CollapseNav个人站',
   tagline: '我觉得可以提升(我自己的)开发效率的dotnet工具包',
   url: 'https://your-docusaurus-test-site.com',
   baseUrl: '/',
@@ -15,7 +15,19 @@ const config = {
   favicon: 'img/favicon.ico',
   organizationName: 'CollapseNav', // Usually your GitHub org/user name.
   projectName: 'CollapseNav Docs', // Usually your repo name.
-  plugins: ['mdx-mermaid'],
+  plugins: ['mdx-mermaid',
+    [
+      'content-docs',
+      /** @type {import('@docusaurus/plugin-content-docs').Options} */
+      ({
+        id: 'other',
+        path: 'Other',
+        remarkPlugins: [require('mdx-mermaid')],
+        routeBasePath: 'Other',
+        sidebarPath: require.resolve('./sidebarsOther.js'),
+      }),
+    ]
+  ],
   presets: [
     [
       'classic',
@@ -32,6 +44,7 @@ const config = {
           postsPerPage: 'ALL',
           blogTitle: '我的博客',
           blogDescription: '兴趣使然做的博客',
+          remarkPlugins: [require('mdx-mermaid')],
           // Please change this to your repo.
           // editUrl: 'https://github.com/CollapseNav/Collapsenav.Net.Tool',
         },
@@ -62,16 +75,16 @@ const config = {
             label: 'Tool文档',
           },
           {
-            type: 'docSidebar',
-            position: 'left',
-            sidebarId: 'knowledge',
+            to: '/other/knowledge',
             label: '技术栈',
+            position: 'left',
+            activeBaseRegex: `/other/knowledge/`,
           },
           {
-            type: 'docSidebar',
-            position: 'left',
-            sidebarId: 'markdown',
+            to: '/other/markdown/env',
             label: 'MarkDown介绍',
+            position: 'left',
+            activeBaseRegex: `/other/markdown/`,
           },
           { to: '/blog', label: 'Blog', position: 'left' },
           {

@@ -1,0 +1,190 @@
+# winform 事件
+
+## 前言
+
+水群的时候看到了一个高频问题
+
+> 在form1中打开form2, 同时关闭form1, 如何在关闭form2的同时 **关闭/显示** form1
+
+## 思路&解决方案
+
+### 1.简单粗暴
+
+最简单粗暴的做法就是在创建 form2 的同时通过构造函数或者其他什么办法将 form1 的引用传递给 form2
+
+然后在 form2 里面直接调用 `form1.Show()`
+
+通过构造函数传递form1引用:
+
+
+`Form1.cs`
+```csharp
+private void OpenForm2_Click(object sender, EventArgs e)
+{
+    // 创建 form2 时传递 form1
+    var form2 = new Form2(this);
+    form2.Show();
+    Hide();
+}
+```
+`Form2.cs`
+```csharp
+private Form1 form1;
+// 通过构造函数传递form1
+public Form2(Form1 form)
+{
+    InitializeComponent();
+    form1 = form;
+}
+// 为 form2 的关闭事件绑定 form1.Show() 方法
+private void Form2_FormClosed(object sender, FormClosedEventArgs e)
+{
+    form1.Show();
+}
+```
+
+这样写基本上就可以实现上面的需求了
+
+:::tip
+如果form2可能会有多个创建者, 只需要将form2构造函数入参的 `Form1` 改为 `Form` 即可
+:::
+
+`Form2.cs`
+```csharp
+private Form Creator;
+// 通过构造函数传递form1
+public Form2(Form form)
+{
+    InitializeComponent();
+    Creator = form;
+}
+// 为 form2 的关闭事件绑定 form1.Show() 方法
+private void Form2_FormClosed(object sender, FormClosedEventArgs e)
+{
+    Creator.Show();
+}
+```
+
+### 2.使用内置事件
+
+微软的 Form 有一些内置的事件, 我们可以借用这些事件实现上述的需求
+
+Form 窗体关闭时会触发 `FormClosed` 事件, 为该事件加个委托
+
+`Form1.cs`
+```csharp
+private void OpenForm2_Click(object sender, EventArgs e)
+{
+    var form2 = new Form2();
+    // 如果只是需要实现上述的需求, 弃元即可
+    form2.FormClosed += (_, _) => Show();
+    form2.Show();
+    Hide();
+}
+```
+
+**Form2不需要做任何改动**
+
+## 比较麻烦的方法
+
+### 3.自定义事件/委托
+
+使用内置的事件可以满足基本需求, 但有时候可能需要将form2中的某些数据传给form1
+
+这种情况下内置的事件可能就不太够用了
+
+此时可以考虑使用 自定义事件/委托
+
+`Form2.cs`
+```csharp
+public Form4()
+{
+    InitializeComponent();
+}
+// 传一个 int 类型的值
+public EventHandler<int> EventWithInt;
+// 传一个 DateTime 类型的值
+public Action<DateTime> FuncWithTime;
+
+private void ToggleEvent_Click(object sender, EventArgs e)
+{
+    EventWithInt(sender, 233);
+}
+
+private void ToggleFunc_Click(object sender, EventArgs e)
+{
+    FuncWithTime(DateTime.Now);
+}
+```
+
+Form2 中定义了一个 事件 `EventHandler<int> EventWithInt`, 传递 `int` 参数
+
+定义了一个 委托 `Action<DateTime> FuncWithTime`, 传递 `DateTime` 参数
+
+分别在触发了某个操作之后进行数据传递
+
+`Form1.cs`
+```csharp
+private void OpenForm2_Click(object sender, EventArgs e)
+{
+    var form2 = new Form2();
+    form2.EventWithInt += (_, num) => OpenForm2.Text = num.ToString();
+    form2.FuncWithTime += time => OpenForm2.Text = time.ToString();
+    form2.Show();
+}
+```
+
+在 Form1 中创建 Form2 时绑定对应委托, 在点击 Form2 的按钮时修改 Form1 中按钮的 Text 属性
+
+### 4."多此一举"的封装
+
+偶尔可能会出现 Form1 创建 Form2 , 然后 Form2 又创建了 Form3 ,然后 Form3 ......
+
+以此类推, 可能到了 Form233 的时候需要 Form1.Show() , 在这种情况下上述的几个解决方案可能都还能用, 但是实现起来太过麻烦, 或者会对路径上的所有 Form 产生很大的侵入
+
+所以在此提供一个"非常简单"的思路
+
+```csharp
+public class SimpleEvent
+{
+    // 用字典或者其他集合类型可能会更好
+    private static List<Action<string>> Events = new();
+
+    public static void Reg(Action<string> action)
+    {
+        Events.Add(action);
+    }
+    public static void Send(string msg)
+    {
+        Events.ForEach(item => item(msg));
+    }
+}
+```
+
+`Form1.cs`
+```csharp
+public Form1()
+{
+    InitializeComponent();
+    SimpleEvent.Reg(item =>
+        {
+            if (item is "ShowForm1") Show();
+            if (item == "HideForm1") Hide();
+        }
+    );
+}
+```
+
+`Form233.cs`
+```csharp
+private void Form233_FormClosed(object sender, FormClosedEventArgs e)
+{
+    SimpleEvent.Send("ShowForm1");
+}
+```
+
+这样大致就可以实现需求了, 可还有很多问题需要解决, 有兴趣可以扩展扩展
+
+`Events` 用字典或者其他集合类型可能会更好, 但只是为了做个简单演示, 不值得
+
+~~我猜大概率会是重复造轮子~~
