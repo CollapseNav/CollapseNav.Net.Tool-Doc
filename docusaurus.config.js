@@ -21,9 +21,9 @@ const config = {
       /** @type {import('@docusaurus/plugin-content-docs').Options} */
       ({
         id: 'other',
-        path: 'Other',
+        path: 'other',
         remarkPlugins: [require('mdx-mermaid')],
-        routeBasePath: 'Other',
+        routeBasePath: 'other',
         sidebarPath: require.resolve('./sidebarsOther.js'),
       }),
     ]
