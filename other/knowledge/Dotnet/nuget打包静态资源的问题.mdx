@@ -1,0 +1,39 @@
+---
+title: nuget打包静态资源的问题
+sidebar_position: 4
+---
+# nuget打包静态资源的问题
+
+前段时间做了个区划包, 爬了点数据生成了一个 `region-tree.json` 文件, 存放了全国一直到街道级的区划数据
+
+然后又写了点代码解析处理这个文件
+
+当时的 `csproj` 中对这个资源是这样引用的
+
+```xml
+<ItemGroup>
+    <None Include="region-tree.json" CopyToOutputDirectory="always"/>
+</ItemGroup>
+```
+
+`region-tree.json`在运行的时候可以正常复制到 `bin` 下
+
+但是当我想要打包时却发现, 资源文件无法被一同打到nuget包中
+
+经过一段时间的资料搜索, 修改文件引用如下
+
+```xml
+<ItemGroup>
+    <None Include="region-tree.json" CopyToOutputDirectory="always" PackageCopyToOutput="true" Pack="true"/>
+</ItemGroup>
+```
+
+添加 `PackageCopyToOutput="true"` 和 `Pack="true"` 即可
+
+## 现在发现的问题
+
+以上的打包设置在多 `TargetFramwork` 会导致资源被复制多份
+
+比如上面所说的包, 支持 `.netstandard2.0;netstandard2.1;net6.0`
+
+`region-tree.json` 会被复制三份, 暂时还不知道有什么好的解决方案
