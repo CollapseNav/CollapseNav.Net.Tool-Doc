@@ -1,0 +1,99 @@
+---
+sidebar_position: 1
+---
+# BestPractice-最佳实践
+
+首先需要通过nuget引入 [Collapsenav.Net.Tool.AutoInject](https://www.nuget.org/packages/Collapsenav.Net.Tool.AutoInject)
+
+这个包提供部分 **属性注入** 和 **自动注册** 的功能
+
+但是在大多数场景下, 项目会使用 asp.net 提供的 controller 作为入口
+
+如果你使用的是 Controller, 可以直接引入 [Collapsenav.Net.Tool.AutoInject.Controller](https://www.nuget.org/packages/Collapsenav.Net.Tool.AutoInject.Controller)
+
+## 简单的注册代码
+
+以下是最简陋的情况下的注册代码
+```csharp
+using Collapsenav.Net.Tool.AutoInject;
+
+var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseAutoInjectProviderFactory();
+builder.Services.AddControllers().AddControllersAsServices();
+/*
+其他注册的服务
+*/
+builder.Services.AddAutoInjectController();
+
+var app = builder.Build();
+app.MapControllers();
+app.Run();
+```
+:::note
+使用 `builder.Host.UseAutoInjectProviderFactory()` 替换默认的工厂实现, 可以提供 **属性注入** 功能
+
+尽量将这一步放在最上方先做
+:::
+:::note
+使用 `builder.Services.AddControllers().AddControllersAsServices()` 将controller交给依赖注入容器, 不然无法正常使用 **属性注入**
+:::
+:::note
+使用 `builder.Services.AddAutoInjectController()` 可以提供扫描程序集 **自动注册** 的功能
+
+为了避免冲突, 尽量放在最后一个进行注册
+:::
+
+## 使用属性注入
+
+假设我们有这样一个服务 `DefaultService`
+
+```csharp
+public class DefaultService
+{
+    public async Task<string> GetString()
+    {
+        return await Task.FromResult("DefaultService");
+    }
+}
+```
+
+然后我们还有一个简单的 `DefaultController`
+
+```csharp
+[ApiController]
+[Route("[controller]")]
+public class DefaultController : ControllerBase
+{
+    [AutoInject]
+    public DefaultService Service { get; set; }
+    [HttpGet]
+    public async Task<string> Get()
+    {
+        return await Service.GetString();
+    }
+}
+```
+
+在完成了上方的注册之后, 就可以使用 **先进的属性注入**
+
+首先需要定义一个 `public` 的**属性(Property)**或者**字段(Field)**
+
+然后加上 `[AutoInject]` 注解即可
+
+:::tip
+被 `[AutoInject]` 标记的服务**可以**不用注册
+
+在使用 `builder.Services.AddAutoInjectController()` 时会通过扫程序集的方式找到所有被标记的type自动进行注册
+
+默认会注册为 `Scope` 生命周期
+
+如果对此有特别要求, 可以自行手动注册, 在已经手动注册的情况下不会再进行重复注册
+:::
+
+## Demo
+
+我的GitHub上有提供对应的[demo](https://github.com/CollapseNav/Collapsenav.Net.Tool/tree/main/Demo/WebApiDemo/AutoInjectWebApiDemo)
+
+通过现成的代码大概会有更加直观的了解
+
+
