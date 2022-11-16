@@ -141,40 +141,6 @@ var obj = new PropTest1
 obj.SetValue("Prop.Prop1", "1.2");
 ```
 
-### AttrValues
-
-:::note
-获取类属性上的 Attribute
-:::
-
-```csharp
-...
-sealed class UnitTestAttribute : System.Attribute
-{
-    readonly string _field;
-
-    public UnitTestAttribute(string field)
-    {
-        _field = field;
-    }
-    public string Field
-    {
-        get { return _field; }
-    }
-}
-public class AttrTest
-{
-    [UnitTest("123")]
-    public string Prop1 { get; set; }
-    [UnitTest("233")]
-    public string Prop2 { get; set; }
-}
-var attrValues = typeof(AttrTest).AttrValues<UnitTestAttribute>();
-attrValues.Count; // 2
-attrValues.First().Value.Field; // "123"
-attrValues.Last().Value.Field; // "233"
-```
-
 ### GetAnonymousValue
 
 :::note
@@ -220,3 +186,37 @@ obj.SetAnonymousValue("Item.Index", 233);
 :::caution
 虽然做出来了, 但感觉可能并没有什么用
 :::
+
+### AttrValues
+
+:::note
+获取类属性上的 Attribute
+:::
+
+```csharp
+...
+sealed class UnitTestAttribute : System.Attribute
+{
+    readonly string _field;
+
+    public UnitTestAttribute(string field)
+    {
+        _field = field;
+    }
+    public string Field
+    {
+        get { return _field; }
+    }
+}
+public class AttrTest
+{
+    [UnitTest("123")]
+    public string Prop1 { get; set; }
+    [UnitTest("233")]
+    public string Prop2 { get; set; }
+}
+var attrValues = typeof(AttrTest).AttrValues<UnitTestAttribute>();
+attrValues.Count; // 2
+attrValues.First().Value.Field; // "123"
+attrValues.Last().Value.Field; // "233"
+```

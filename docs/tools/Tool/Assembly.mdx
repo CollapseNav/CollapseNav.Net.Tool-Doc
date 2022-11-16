@@ -1,0 +1,165 @@
+---
+title: Assembly(程序集)
+sidebar_position: 4
+---
+# Assembly
+
+## IsCustomerAssembly
+
+:::caution
+尽可能在不需要额外配置的情况下判断一个程序集是否为只定义的程序集
+
+通过publickeytoken是否为空判断, 肯定不会准, 但在我的使用场景下还算好用
+:::
+:::tip
+扩展了 `AssemblyName` 和 `Assembly`
+:::
+
+```csharp
+Assembly.LoadFrom("Collapsenav.Net.Tool.dll").IsCustomerAssembly();
+Assembly.LoadFrom("Collapsenav.Net.Tool.dll").GetName().IsCustomerAssembly();
+```
+
+## GetAllAssemblyNames
+
+:::caution
+获取 `Assembly` 所在目录下的所有 `AssemblyName`
+:::
+
+```csharp
+Assembly.LoadFrom("Collapsenav.Net.Tool.dll").GetAllAssemblyNames();
+```
+
+## GetAllAssemblies
+
+:::caution
+获取 `Assembly/AppDomain` 所在目录下的所有 `Assembly`
+:::
+
+```csharp
+Assembly.LoadFrom("Collapsenav.Net.Tool.dll").GetAllAssemblies();
+AppDomain.CurrentDomain.GetAllAssemblies();
+```
+
+## GetCustomerAssemblies
+
+:::caution
+获取 `Assembly/AppDomain` 所在目录下的所有自定义的 `Assembly`
+:::
+
+```csharp
+Assembly.LoadFrom("Collapsenav.Net.Tool.dll").GetCustomerAssemblies();
+AppDomain.CurrentDomain.GetCustomerAssemblies();
+```
+
+## GetInterfaces
+
+:::note
+获取 `Assembly/AppDomain` 下的所有 `interface`
+:::
+
+```csharp
+Assembly.LoadFrom("Collapsenav.Net.Tool.dll").GetInterfaces();
+AppDomain.CurrentDomain.GetInterfaces();
+```
+
+## GetAbstracts
+
+:::note
+获取 `Assembly` 下的所有 `abstract class`
+:::
+
+```csharp
+Assembly.LoadFrom("Collapsenav.Net.Tool.dll").GetAbstracts();
+```
+
+## GetEnums
+
+:::note
+获取 `Assembly` 下的所有 `enum`
+:::
+
+```csharp
+Assembly.LoadFrom("Collapsenav.Net.Tool.dll").GetEnums();
+```
+
+## GetTypes
+
+:::note
+获取 `AppDomain` 下的所有 `Type`
+:::
+
+```csharp
+AppDomain.CurrentDomain.GetTypes();
+```
+
+## GetCustomerTypes
+
+:::note
+获取 `AppDomain` 下的所有自定义 `Type`
+:::
+
+```csharp
+AppDomain.CurrentDomain.GetCustomerTypes();
+```
+
+## GetCustomerInterfaces
+
+:::note
+获取 `AppDomain` 下的所有自定义 `interface`
+:::
+
+```csharp
+AppDomain.CurrentDomain.GetCustomerInterfaces();
+```
+
+## GetTypes<T\>
+
+:::note
+获取 `AppDomain` 下的所有可以转为 `T` 的 `Type`
+:::
+
+```csharp
+AppDomain.CurrentDomain.GetTypes<MyClass>();
+```
+
+## GetCustomerTypes<T\>
+
+:::note
+获取 `AppDomain` 下自定义程序集中所有可以转为 `T` 的 `Type`
+:::
+
+```csharp
+AppDomain.CurrentDomain.GetCustomerTypes<MyClass>();
+```
+
+## GetCustomerTypesByPrefix
+
+:::note
+获取 `AppDomain` 下自定义程序集中所有匹配 前缀 的 `Type`
+:::
+
+```csharp
+AppDomain.CurrentDomain.GetCustomerTypesByPrefix("MyClass");
+```
+
+## GetCustomerTypesBySuffix
+
+:::note
+获取 `AppDomain` 下自定义程序集中所有匹配 后缀 的 `Type`
+:::
+
+```csharp
+AppDomain.CurrentDomain.GetCustomerTypesBySuffix("MyClass");
+```
+
+## GetCustomerTypesByPrefixAndSuffix
+
+:::note
+获取 `AppDomain` 下自定义程序集中所有匹配 前缀后缀 的 `Type`
+:::
+
+```csharp
+AppDomain.CurrentDomain.GetCustomerTypesByPrefixAndSuffix("MyClass");
+```
+

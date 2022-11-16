@@ -63,7 +63,7 @@ IDictionary<int, string> dict = nums.ToDictionary(item => int.Parse(item));
 需要使用委托指定字典的 `Key` 值
 :::
 
-### GetAndRemove
+### GetAndRemove/Pop
 
 :::note
 获取值并且移除字典项
@@ -78,6 +78,11 @@ Dictionary<int, string> dict = new()
 };
 string value = dict.GetAndRemove(1);
 ```
+:::tip
+实际上使用 Pop 也可以
+
+`dict.Pop(1)`
+:::
 
 ### Deconstruct
 
