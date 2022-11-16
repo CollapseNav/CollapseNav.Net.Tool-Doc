@@ -5,15 +5,16 @@ title: Quartz
 
 # Collapsenav.Net.Tool.Quartz
 
-[nuget-Collapsenav.Net.Tool.Quartz](https://www.nuget.org/packages/Collapsenav.Net.Tool.Quartz)
+[nuget](https://www.nuget.org/packages/Collapsenav.Net.Tool.Quartz)
 
-[GitHub-Demo](https://github.com/CollapseNav/Collapsenav.Net.Tool/tree/main/Demo/QuartzDemo)
+[Demo](https://github.com/CollapseNav/Collapsenav.Net.Tool/tree/main/Demo/QuartzDemo)
 
 Quartz.Net 是个被广泛使用的类库, 但我在使用的时候感觉配置任务的过程太繁琐, 特别不方便, 所以简单写了个扩展
 
 
-
 ## 定义Job
+
+首先定义两个简单的job
 
 ```csharp
 // 普通Job
@@ -25,6 +26,9 @@ public class FirstJob : IJob
         Console.WriteLine($"{DateTime.Now.ToDefaultTimeString()}FirstJob");
     }
 }
+```
+一个是普通的job, 不需要使用依赖注入
+```csharp
 // 依赖注入Job
 public class DIJob : IJob
 {
@@ -36,8 +40,9 @@ public class DIJob : IJob
     }
 }
 ```
+一个是需要使用依赖注入的job
 
-## 注册
+## 手动注册
 
 在 asp.net core 下注册使用是非常方便的
 
@@ -57,9 +62,9 @@ services
 
 最后使用 `AddDefaultQuartzService` 注册一个 `HostedService`, 它会自动启动所有注册的Job
 
-在引入了我这个包的情况下, 只需要创建对应的Job, 然后根据需要进行注册即可
+在引入了这个包的情况下, 只需要创建对应的Job, 然后根据需要进行注册即可
 
-### 其他的注册方式
+## 使用传统的xml配置进行注册
 
 :::tip
 可能有些项目还是要用xml进行配置
@@ -69,23 +74,59 @@ services
 services.AddJobsFromXml("quartz.xml");
 .AddDefaultQuartzService();
 ```
-
-:::tip
-如果需要开启多个定时任务, 可以使用 `AddJobs`
+:::caution
+使用xml进行配置时可能无法正常使用各种依赖注入功能, 手动注册服务可能会解决这个问题
 :::
+
+## 使用json格式的配置
+
+:::info
+个人认为传统的xml配置太麻烦, 反正我是从来都没有记住过对应的配置格式, 都是直接抄的
+
+所以简单做了两种json格式配置的支持
+:::
+
+`appsettings.json`
+```json
+{
+    // 具有简单格式的配置
+    "Quartz1": [
+        {
+            "JobName": "FirstJob",
+            "Len": 3
+        }
+    ],
+    // 更加简单的只需要键值对即可的配置
+    "Quartz2": {
+        "SecondJob": "0/5 * * * * ?",
+        "ThirdJob": 1
+    }
+}
+```
+
+然后简单注册一下
+
 ```csharp
 services
-// 从当前开始每 10,20,30 秒执行
-.AddJobs<FirstJob>(10, 20, 30)
-// 每70秒执行一次, 使用 CronTool.CreateCrons 可以生成对应的Cron表达式
-.AddJobs<FirstJob>(CronTool.CreateCrons(70))
+// 扫描程序集, 注册所有job
+.AddAllJob()
+// 使用 Quartz1 配置
+.AddQuartzJsonConfig(builder.Configuration.GetSection("Quartz1"))
+// 使用 Quartz2 配置
+.AddQuartzJsonConfig(builder.Configuration.GetSection("Quartz2"))
 .AddDefaultQuartzService();
 ```
 
-:::tip
-支持在 `AddDefaultQuartzService` 中注册
-:::
-```csharp
-services
-.AddDefaultQuartzService(builder => builder.AddJob<FirstJob>(10));
-```
+需要先使用 `AddAllJob` 扫描并且注册所有能够查到的job
+
+然后使用 `AddQuartzJsonConfig` 读取json配置
+
+以上的代码和配置在程序启动之后会创建
+
+一个 3s 执行一次的 `FirstJob`
+
+一个 每5s 执行一次的 `SecondJob`
+
+一个 1s 执行一次的 `ThirdJob`
+
+
