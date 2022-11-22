@@ -1,0 +1,148 @@
+---
+title: 改造原生DI实现属性注入
+sidebar_position: 7
+---
+# 改造原生DI实现属性注入
+
+我见过的依赖注入主要有两种
+
+* `.net`使用的是 `构造函数注入`, 将依赖显式地写在构造函数中
+* `spring`使用的是 `属性注入`, 将依赖使用 `@Autowired` 标记起来
+
+由于原生的DI不支持 `属性注入`, 所以打算尝试实现一下
+
+## 思考1
+
+正常来说, 我们希望的 `属性注入` 使用起来应该像下面的代码一样
+
+```csharp
+[ApiController]
+[Route("[controller]")]
+public class DemoController : ControllerBase
+{
+    [AutoInject]
+    public DemoService Demo{get;set;}
+}
+```
+
+将需要自动进行注入的依赖做个标记, 然后在创建 `DemoController` 对象时自动对 `Demo` 属性进行赋值
+
+由于没有使用 `构造函数注入`, 所以我们必须将 `Demo` 设为 `public`, 不然无法访问到对应的属性
+
+原生DI使用 `ServiceProvider` 创建对象, 所以第一步我们 **至少需要自定义一个 `MyServiceProvider`**
+
+## 自定义 MyServiceProvider
+
+首先参考装饰器模式扩展出一个 `MyServiceProvider`
+
+```csharp
+public class MyServiceProvider : IServiceProvider
+{
+    private IServiceProvider _provider;
+    public MyServiceProvider(IServiceProvider provider) => _provider = provider;
+    public object GetService(Type serviceType)
+    {
+        var obj = _provider.GetService(serviceType);
+        return obj;
+    }
+}
+```
+
+其次我们需要确定这个对象中需要我们进行注入的属性
+
+```csharp
+public class MyServiceProvider : IServiceProvider
+{
+    private IServiceProvider _provider;
+    public MyServiceProvider(IServiceProvider provider)
+    {
+        _provider = provider;
+    }
+    public object GetService(Type serviceType)
+    {
+        var obj = _provider.GetService(serviceType);
+        if (obj == null)
+            return obj;
+        var type = obj.GetType();
+        var props = type.GetProperties()
+        .Where(item => item.CustomAttributes.Any(attr => attr.AttributeType == typeof(AutoInjectAttribute)));
+        foreach (var prop in props)
+            prop.SetValue(obj, GetService(prop.PropertyType));
+        return obj;
+    }
+}
+```
+:::tip
+在获取属性之前最好使用 `GetType()` 获取到的 `type`
+
+`serviceType` 很有可能只是接口的类型, 而不是具体的实现类型
+:::
+
+通过判断属性的 `CustomAttributes` 有无我们自定义的 `AutoInjectAttribute` 筛选被标记的属性
+
+然后通过筛选出来的属性对 `obj` 进行赋值
+
+## 思考2
+
+原生DI使用一个 `ServiceProviderFactory` 创建 `ServiceProvider` 对象
+
+所以在自定义了 `MyServiceProvider` 之后, 我们还需要自定义一个 `MyServiceProviderFactory`
+
+## 自定义 MyServiceProviderFactory
+
+```csharp
+public class MyServiceProviderFactory : IServiceProviderFactory<IServiceCollection>
+{
+    public IServiceCollection CreateBuilder(IServiceCollection services) => services ?? new ServiceCollection();
+    public IServiceProvider CreateServiceProvider(IServiceCollection containerBuilder)
+    {
+        return new MyServiceProvider(containerBuilder.BuildServiceProvider());
+    }
+}
+```
+
+`MyServiceProviderFactory` 的实现非常简单, 只要返回我们之前自定义的 `MyServiceProvider` 对象即可
+
+## 使用 MyServiceProviderFactory
+
+使用以下代码即可将DI使用的工厂替换为我们自定义的实现
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseServiceProviderFactory(new MyServiceProviderFactory());
+```
+
+## 问题
+
+但即使替换了工厂实现, 我们可能依然无法正常进行 `属性注入`, 尤其是在使用 `Controller` 的时候
+
+这主要是因为 `Controller` 由 `ControllerActivator` 创建
+
+所以我们还需要实现自定义的 `MyControllerActivator`
+
+## 实现 MyControllerActivator
+
+```csharp
+public class MyControllerActivator : IControllerActivator
+{
+    public virtual object Create(ControllerContext context)
+    {
+        var provider = context.HttpContext.RequestServices;
+        provider = provider is MyServiceProvider ? provider : new MyServiceProvider(provider);
+        return provider.GetService(context.ActionDescriptor.ControllerTypeInfo.AsType());
+    }
+    public virtual void Release(ControllerContext context, object controller)
+    {
+        if (controller is IDisposable disposeable) disposeable.Dispose();
+    }
+}
+```
+
+在 `Create` 创建 `Controller` 时将原来的 `provider` 替换为自定义的 `MyServiceProvider`
+
+
+
+
+
+
+
