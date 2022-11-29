@@ -1,0 +1,74 @@
+---
+sidebar_position: 1
+---
+# BestPractice-最佳实践
+
+首先需要通过nuget引入 [Collapsenav.Net.Tool.DynamicApi](https://www.nuget.org/packages/Collapsenav.Net.Tool.DynamicApi)
+
+## 简单的注册代码
+
+以下是最简陋的情况下的注册代码
+```csharp
+using Collapsenav.Net.Tool.DynamicApi;
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddControllers().AddDynamicWebApi();
+var app = builder.Build();
+app.MapControllers();
+app.Run();
+```
+:::note
+相比AutoInject, DynamicApi 的注册非常简单, 只需要在 `AddControllers` 后面加一个 `AddDynamicWebApi` 即可
+:::
+
+:::tip
+DynamicApi 可以和 AutoInject 一起使用, 只需要在使用 AutoInject 的基础上, 在 `AddControllersAsServices` 之前 `AddDynamicWebApi` 即可
+:::
+```csharp
+using Collapsenav.Net.Tool.AutoInject;
+using Collapsenav.Net.Tool.DynamicApi;
+var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseAutoInjectProviderFactory();
+builder.Services.AddControllers().AddDynamicWebApi().AddControllersAsServices();
+/*
+其他注册的服务
+*/
+builder.Services.AddAutoInjectController();
+
+var app = builder.Build();
+app.MapControllers();
+app.Run();
+```
+
+## 标记需要转成Api的类
+
+假设我们有这样一个简单的class `TestApi`
+
+```csharp
+public class TestApi : IDynamicApi
+{
+    public async Task<string> Get()
+    {
+        return await Task.FromResult("2333");
+    }
+}
+```
+:::note
+"实现" `IDynamicApi` 就完成了标记
+:::
+
+运行之后会生成一个 `{HOST}/TestApi/Get` 的 `Get` 类型的接口
+
+可以使用 `HttpGet,HttpPost,HttpPut,HttpDelete` 注解标记生成的接口类型
+
+也可以根据名称自动判断, 现阶段的规则非常简陋
+
+* 以 Get,Query 开头的方法为 `Get` 类型
+* 以 Put,Update 开头的方法为 `Put` 类型
+* 以 Delete,Remove 开头的方法为 `Delete` 类型
+* 其他的默认为 `Post` 类型
+
+## Demo
+
+我的GitHub上有提供对应的[demo](https://github.com/CollapseNav/Collapsenav.Net.Tool/tree/main/Demo/WebApiDemo/DynamicWebApi)
+
+通过现成的代码大概会有更加直观的了解
