@@ -140,6 +140,16 @@ public class MyControllerActivator : IControllerActivator
 
 在 `Create` 创建 `Controller` 时将原来的 `provider` 替换为自定义的 `MyServiceProvider`
 
+## 替换 IControllerActivator
+
+有了自己的 `MyControllerActivator` 之后, 就需要将原来注册的 `IControllerActivator` 替换掉
+
+```csharp
+builder.Services.Replace(ServiceDescriptor.Transient<IControllerActivator, MyControllerActivator>());
+```
+
+替换完成后即可在创建 Controller 时使用自定义的 `MyServiceProvider`
+
 
 
 
