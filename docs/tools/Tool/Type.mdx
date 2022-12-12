@@ -52,11 +52,7 @@ boolValue.IsBaseType(); // True
 所以实际使用的时候可能会有奇奇怪怪的问题
 :::
 
-### PropNames
-
-:::note
-获取属性的名称
-:::
+### PropNames(获取属性的名称)
 
 ```csharp
 var props = typeof(PropTest1).PropNames();
@@ -75,11 +71,7 @@ props = typeof(PropTest0).PropNames(0);
 默认深度为 0
 :::
 
-### GetValue
-
-:::note
-获取对象属性的 Value
-:::
+### GetValue(获取属性Value)
 
 ```csharp
 var obj = new PropTest1
@@ -110,11 +102,7 @@ var obj = new PropTest1
 obj.GetValue("Prop.Prop1"); // "1.1"
 ```
 
-### SetValue
-
-:::note
-设置对象的属性值
-:::
+### SetValue(设置属性Value)
 
 ```csharp
 var data = new PropTest1 { Prop1 = "1" };
@@ -141,11 +129,7 @@ var obj = new PropTest1
 obj.SetValue("Prop.Prop1", "1.2");
 ```
 
-### GetAnonymousValue
-
-:::note
-获取匿名类型的属性值
-:::
+### GetAnonymousValue(获取匿名类型的属性值)
 
 ```csharp
 var obj = new
@@ -162,11 +146,7 @@ var obj = new
 (int)obj.GetValue("Item.Name"); // "2333"
 ```
 
-### SetAnonymousValue
-
-:::note
-设置匿名类型的属性值
-:::
+### SetAnonymousValue(设置匿名类型的属性值)
 
 ```csharp
 var obj = new

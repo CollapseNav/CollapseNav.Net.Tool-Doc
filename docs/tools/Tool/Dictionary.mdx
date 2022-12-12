@@ -5,11 +5,7 @@ sidebar_position: 3
 
 # Dictionary
 
-### AddOrUpdate
-
-:::note
-添加或更新字典元素
-:::
+### AddOrUpdate(添加或更新)
 
 ```csharp
 Dictionary<int, string> dict = new();
@@ -24,11 +20,7 @@ dict
 支持传入 `KeyValuePair` 和 单独的 key+value
 :::
 
-### AddRange
-
-:::note
-添加多个字典项
-:::
+### AddRange(添加多个)
 
 ```csharp
 Dictionary<int, string> dict = new();
@@ -48,11 +40,7 @@ dict.AddRange(dict2);
 支持传入 `KeyValuePair` 集合
 :::
 
-### ToDictionary
-
-:::note
-将集合转为字典
-:::
+### ToDictionary(将集合转为字典)
 
 ```csharp
 string[] nums = new[] { "1", "2", "3", "4", "5" };
@@ -63,11 +51,7 @@ IDictionary<int, string> dict = nums.ToDictionary(item => int.Parse(item));
 需要使用委托指定字典的 `Key` 值
 :::
 
-### GetAndRemove/Pop
-
-:::note
-获取值并且移除字典项
-:::
+### GetAndRemove/Pop(获取并移除)
 
 ```csharp
 Dictionary<int, string> dict = new()
@@ -84,11 +68,7 @@ string value = dict.GetAndRemove(1);
 `dict.Pop(1)`
 :::
 
-### Deconstruct
-
-:::note
-字典解构, 将字典解构为元组
-:::
+### Deconstruct(解构)
 
 ```csharp
 Dictionary<int, string> dict = new()

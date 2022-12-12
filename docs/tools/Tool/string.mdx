@@ -5,11 +5,7 @@ sidebar_position: 2
 
 # string
 
-### Null/Empty
-
-:::note
-字符串判空
-:::
+### Null/Empty(判空)
 
 ```csharp
 string empty = "";
@@ -24,7 +20,7 @@ whiteSpace.NotNull(); //False
 ```
 
 :::tip
-若字符串为空, 则返回参数中传入的值
+若字符串为空, 则返回参数中传入的值, 可能不是很常用
 :::
 
 ```csharp
@@ -32,11 +28,7 @@ empty.IsNull("233"); // "233"
 notEmpty.IsEmpty("233"); // "NotEmpty"
 ```
 
-### Add/AddIf
-
-:::note
-字符串拼接
-:::
+### Add/AddIf(拼接)
 
 ```csharp
 string str = string.Empty;
@@ -111,12 +103,11 @@ string longString = "233333333333333";
 longString.ToLong();
 ```
 
-### Join
+### Join(连接)
 
 :::note
-不限数据类型的 `Join`
+可以直接将任意集合类型拼接为字符串
 :::
-
 ```csharp
 string strJoin = "233.233.233.233";
 strJoin.Join("@"); // "2@3@3@.@2@3@3@.@2@3@3@.@2@3@3"
@@ -129,22 +120,14 @@ intJoin.Join("@", item => -item); // "-1@-2@-3"
 可通过委托指定 **Join** 拼接的内容
 :::
 
-### CanPing
-
-:::note
-是否可以被 ping 通
-:::
+### CanPing(ping测试)
 
 ```csharp
 string url = "https://www.bilibili.com/";
 url.CanPing(); // 如果联网了,应该为 True
 ```
 
-### PadLeftAndRight
-
-:::note
-字符串填充
-:::
+### PadLeftAndRight(填充)
 
 ```csharp
 int iValue = 233;
@@ -176,7 +159,7 @@ dValue.PadRight(6, item => item + 1, '-'); // "3.33--"
 lValue.PadRight(6, item => item + 1, '-'); // "23334-"
 ```
 
-### StartsWit&&EndsWith
+### StartsWith&&EndsWith
 
 :::note
 对字符串集合的 StartsWit&&EndsWith 判断
@@ -213,11 +196,7 @@ str.First(5); // "12345"
 str.Last(5); // "54321"
 ```
 
-### AutoMask
-
-:::note
-字符串自动遮罩
-:::
+### AutoMask(自动遮罩)
 
 ```csharp
 var origin = "CollapseNav.Net.Tool";
@@ -229,10 +208,6 @@ var masked = origin.AutoMask(); // Col*ool
 :::
 
 ### Base64
-
-:::note
-Base64 相关的操作
-:::
 
 ```csharp
 var imagePath = "./xxx.png";
@@ -255,7 +230,7 @@ var base64String = fs.StreamToBase64();
 ```
 
 
-### Contain
+### Contain(是否包含)
 
 :::note
 字符串是否包含指定的字符串
@@ -286,11 +261,7 @@ temp.HasContain(new[] { "ABc", "CD" }, ignoreCase: false); // True
 temp.HasContain(new[] { "ABcE", "cD" }, ignoreCase: false); // False
 ```
 
-### AddBegin&AddEnd
-
-:::note
-给字符串集合添加前缀后缀
-:::
+### AddBegin&AddEnd(添加前缀后缀)
 
 ```csharp
 string[] strs = new[] { "2", "3" };

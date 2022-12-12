@@ -5,11 +5,7 @@ sidebar_position: 9
 
 # Stream
 
-### ToBytes
-
-:::note
-流转为 bytes
-:::
+### ToBytes(流转为 bytes)
 
 ```csharp
 var filePath = "./XXXXX";
@@ -17,11 +13,7 @@ using var fs = new FileStream(filePath, FileMode.OpenOrCreate);
 var bytes = fs.ToBytes();
 ```
 
-### ToStream
-
-:::note
-bytes 转为流
-:::
+### ToStream(bytes 转为流)
 
 ```csharp
 var filePath = "./XXXXX";
@@ -29,11 +21,7 @@ using var fs = new FileStream(filePath, FileMode.OpenOrCreate);
 var stream = fs.ToBytes().ToStream();
 ```
 
-### SaveTo
-
-:::note
-保存为文件
-:::
+### SaveTo(保存为文件)
 
 ```csharp
 var filePath = "./XXXXX";
@@ -43,11 +31,7 @@ fs.SaveTo(toFile);
 fs.ToBytes().SaveTo(toFile);
 ```
 
-### Seek
-
-:::note
-流指针移动
-:::
+### Seek(流指针移动)
 
 ```csharp
 var filePath = "./XXXXX";
@@ -57,11 +41,7 @@ fs.SeekToOrigin();
 fs.SeekTo(0);
 ```
 
-### Clear
-
-:::note
-清空流
-:::
+### Clear(清空流)
 
 ```csharp
 stream.Clear();
