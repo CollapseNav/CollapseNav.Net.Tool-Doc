@@ -4,7 +4,9 @@
 
 水群的时候看到了一个高频问题
 
-> 在form1中打开form2, 同时关闭form1, 如何在关闭form2的同时 **关闭/显示** form1
+> 首先在form1中打开form2, 同时关闭form1, 然后如何在关闭form2的同时 **关闭/显示** form1
+
+大致需求就是在form2中对form1进行操作
 
 ## 思路&解决方案
 
@@ -15,7 +17,6 @@
 然后在 form2 里面直接调用 `form1.Show()`
 
 通过构造函数传递form1引用:
-
 
 `Form1.cs`
 ```csharp
@@ -69,7 +70,7 @@ private void Form2_FormClosed(object sender, FormClosedEventArgs e)
 
 微软的 Form 有一些内置的事件, 我们可以借用这些事件实现上述的需求
 
-Form 窗体关闭时会触发 `FormClosed` 事件, 为该事件加个委托
+Form 窗体关闭时会触发 `FormClosed` 事件, 为该事件加个多播委托
 
 `Form1.cs`
 ```csharp
@@ -83,7 +84,7 @@ private void OpenForm2_Click(object sender, EventArgs e)
 }
 ```
 
-**Form2不需要做任何改动**
+在这种情况下**Form2不需要做任何改动**
 
 ## 比较麻烦的方法
 
@@ -142,7 +143,7 @@ private void OpenForm2_Click(object sender, EventArgs e)
 
 以此类推, 可能到了 Form233 的时候需要 Form1.Show() , 在这种情况下上述的几个解决方案可能都还能用, 但是实现起来太过麻烦, 或者会对路径上的所有 Form 产生很大的侵入
 
-所以在此提供一个"非常简单"的思路
+所以在此提供一个"**非常简单**"的思路
 
 ```csharp
 public class SimpleEvent
