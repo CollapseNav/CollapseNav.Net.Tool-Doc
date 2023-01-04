@@ -4,5 +4,61 @@ sidebar_position: 1
 ---
 # 技术栈
 
+![技术栈](/img/drawio/技术栈.png)
 
 
+## 语言
+
+* C#(.net): 是我现在主要使用的语言, 站点中的tool就是C#所写所用
+* Java: 学过用过, 只会写写spring boot, 用的不是很多
+* JS/TS: 改前端,写angular时会用,但是现在前端做的不多
+* Python: 多年之前写过tensorflow/keras, 多年不用忘了很多
+
+## 容器
+
+* Docker: 虽然现在的工作中基本上用不到,但是自己平时经常用
+* k3s: 使用三个树莓派组了k3s集群,该文档就部署在这个集群上
+* k8s: 未来还是要正儿八经学学k8s
+
+## 前端
+
+* winform: 可能每个学C#的多多少少都会点winform,主要用来验证一些工具,用的不多
+* Angular: 做过一些东西,比如文件系统什么的,但是现在前端做的不多
+* Blazor: Razor切换Blazor时用过一点,但是表现不如三大框架
+* Vue: 感觉不如Angular,于是就没再做过
+* React: 想用taro搞app,正在学习中
+* MAUI: 未来可期,暂时没用,考虑MAUI+Blazor的技术栈
+
+## 后端
+
+* Asp.Net Core WebApi: 现在的主要工作内容就是写接口,用的最多
+* Spring Boot: Java技术栈中也只写过这个,但是Java语言不好用,写的很少
+
+## 消息队列
+
+* RabbitMQ: 最常用的消息队列,一般配合CAP一起用
+* Kafka: 据说性能比较好,打算学习一下和RabbitMQ做个对比,可能也就是跑个Benchmark的程度
+* Redis: 在条件比较简陋的情况下,可以考虑使用redis的消息队列,少部署一个服务
+
+## 数据库
+
+* Mssql: .net 技术栈几乎必用的数据库
+* Mysql/Mariadb: 集群的部署比Mssql方便很多,可以支持更加复杂的应用场景
+* Redis: 缓存首选服务,cluster集群就挺好用的
+* Pgsql: 据说是现在"最先进"的数据库,至少得学习了解一下
+* MongoDB: 查询性能非常好,可能结合正常的关系型数据库会有奇效
+
+## 系统
+
+* Linux: 由于使用容器的缘故,对Linux略有了解,常用的发行版本的是无界面的Ubuntu
+* Windows: 论易用性还是Win比较强
+
+## 其他/杂
+
+* CI/CD: 自己用的docker+gitea+drone组合的cicd系统
+* Git: 几乎是现代开发必备的技能
+* Shell: Linux中经常需要写shell脚本进行操作,写的不算多,只能看文档慢慢写
+* Frp: 由于文档部署在家中的树莓派上,所以使用frp进行内网穿透
+* Kuboard: k3s的操作ui,暂时只用到一小部分功能,剩下的还在学习中
+* Kong: 正在用的网关,学习中,等与apisix对比后择一继续改造
+* Apisix: 可能是一个比kong好用的网关,等学习后对比效果
