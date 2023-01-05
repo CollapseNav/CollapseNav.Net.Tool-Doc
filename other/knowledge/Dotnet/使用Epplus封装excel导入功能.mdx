@@ -1,0 +1,183 @@
+---
+title: 使用Epplus封装excel导入功能
+sidebar_position: 1
+---
+## 前言
+
+之前做系统的时候有很多 **excel导入** 的需求, 以前我前后端都做的时候是使用xlsx包在前端解析,然后再通过批量插入的接口将数据插到库里
+
+我觉着这样挺好的，后端部分可以做的很简单(很偷懒的)
+
+但是因为各种各样的原因，最终还是需要做个专门的 **excel导入** 接口,由用户传入excel文件,在后端将数据读取出来
+
+## 遇到的问题
+
+由于之前没有在后端部分处理过表格，所以我选择看一下同事的代码是怎么写的
+
+![othercode](/img/epplus_excel/other_excel_code.png)
+
+虽然我之前没写过相关的业务,但是直觉的认为这样写非常麻烦,我希望一套操作下来可以把 excel 转成能够直接传入 `AddRange` 进行批量新增的实体集合
+
+所以我就决定自己封装
+
+## 结果展示(略)
+
+封装之后的调用如下
+
+```csharp
+public ICollection<TestDto> ExcelImport(IFormFile file)
+{
+    var config = ExcelCellOption<TestDto>
+    .GenExcelOption("姓名", item => item.Name)
+    .Add("年龄", item => item.Age, item => int.Parse(item))
+    .Add("性别", item => item.Gender, item => item == "男")
+    .Add("身高", item => item.Height, item => double.Parse(item));
+
+    ICollection<TestDto> result = ExcelOperation.ExcelToEntity(file.OpenReadStream(), config);
+    return result;
+}
+```
+
+:::tip
+这是一个较早期的版本,主要体现封装思路,现在有了[新的实现](/docs/tools/Excel/BestPractice)
+:::
+
+## 代码/设计/想法
+
+我希望使用的时候通过传入 `表格字段` 与 `数据实体.属性` 的**关系**集合
+
+实现解析表格的同时生成对应的 `实体对象`
+
+然后我对上述 **关系** 的定义如下
+
+```csharp
+public class ExcelCellOption<T>
+{
+    /// <summary>
+    /// 对应excel中的header表头(title)
+    /// </summary>
+    public string ExcelField { get; set; }
+    /// <summary>
+    /// 对应字段的属性(实际上包含PropName)
+    /// </summary>
+    public PropertyInfo Prop { get; set; }
+    /// <summary>
+    /// 就是一个看起来比较方便的标识
+    /// </summary>
+    public string PropName { get; set; }
+    /// <summary>
+    /// 转换 表格 数据的方法(委托)
+    /// </summary>
+    public Func<string, object> Action { get; set; }
+}
+```
+
+之后给他加了个静态方法 `GenExcelOption<E>` 生成关系集合 `ICollection<ExcelCellOption<T>>`
+
+```csharp
+public static ICollection<ExcelCellOption<T>> GenExcelOption<E>(string field,
+            Expression<Func<T, E>> prop, Func<string, object> action = null)
+{
+    var member = prop.GetMember();
+    return new List<ExcelCellOption<T>>{
+        new ExcelCellOption<T>
+        {
+            PropName = member.Name,
+            Prop = (PropertyInfo)member,
+            ExcelField = field,
+            Action = action
+        }
+    };
+}
+```
+
+为了方便之后加新的配置项
+
+给返回类型 `ICollection<ExcelCellOption<T>>` 搞个扩展方法 `Add`
+
+```csharp
+public static class ExcelOptionExt
+{
+    public static ICollection<ExcelCellOption<T>> Add<T, E>(this ICollection<ExcelCellOption<T>> origin,
+    string field, Expression<Func<T, E>> prop, Func<string, object> action = null)
+    {
+        var member = prop.GetMember();
+        origin.Add(new ExcelCellOption<T>
+        {
+            PropName = member.Name,
+            Prop = (PropertyInfo)member,
+            ExcelField = field,
+            Action = action
+        });
+        return origin;
+    }
+}
+```
+
+使用的时候就可以根据excel表格生成对应的 关系集合 (配置)
+
+```csharp
+var config = ExcelCellOption<TestDto>
+.GenExcelOption("姓名", item => item.Name)
+.Add("年龄", item => item.Age, item => int.Parse(item))
+.Add("性别", item => item.Gender, item => item == "男")
+.Add("身高", item => item.Height, item => double.Parse(item));
+```
+
+有了配置之后需要根据配置解析excel生成数据实体了
+
+写了个方法如下
+
+```csharp
+public class ExcelOperation
+{
+    /// <summary>
+    /// 将表格数据转换为指定的数据实体
+    /// </summary>
+    public static ICollection<T> ExcelToEntity<T>(Stream excelStream, ICollection<ExcelCellOption<T>> options)
+    {
+        using ExcelPackage pack = new(excelStream);
+        var sheet = pack.Workbook.Worksheets[1];
+        int rowCount = sheet.Dimension.Rows, colCount = sheet.Dimension.Columns;
+        // 获取对应设置的 表头 以及其 column下标
+        var header = sheet.Cells[1, 1, 1, sheet.Dimension.Columns]
+        .Where(item => options.Any(opt => opt.ExcelField == item.Value?.ToString().Trim()))
+        .ToDictionary(item => item.Value?.ToString().Trim(), item => item.End.Column);
+        List<T> data = new();
+        // 将excel 的数据转换为 对应实体
+        for (int r = 2; r <= rowCount; r++)
+        {
+            // 将单行数据转换为 表头:数据 的键值对
+            var rowData = sheet.Cells[r, 1, r, colCount]
+            .Where(item => header.Any(title => title.Value == item.End.Column))
+            .Select(item => new KeyValuePair<string, string>(header.First(title => title.Value == item.End.Column).Key, item.Value?.ToString().Trim()))
+            .ToDictionary(item => item.Key, item => item.Value);
+            var obj = Activator.CreateInstance(typeof(T));
+            // 根据对应传入的设置 为obj赋值
+            foreach (var option in options)
+            {
+                if (!string.IsNullOrEmpty(option.ExcelField))
+                {
+                    var value = rowData.ContainsKey(option.ExcelField) ? rowData[option.ExcelField] : string.Empty;
+                    if (!string.IsNullOrEmpty(value))
+                        option.Prop.SetValue(obj, option.Action == null ? value : option.Action(value));
+                }
+                // 可以用来初始化与表格无关的字段 如 创建时间 Guid主键 之类的东西
+                else
+                    option.Prop.SetValue(obj, option.Action == null ? null : option.Action(string.Empty));
+            }
+            data.Add((T)obj);
+        }
+        return data;
+    }
+}
+```
+
+最终调用
+
+```csharp
+ExcelOperation.ExcelToEntity(file.OpenReadStream(), config)
+```
+
+传入文件流和配置集合即可返回对应的实体集合
+
