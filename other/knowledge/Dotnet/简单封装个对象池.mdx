@@ -1,0 +1,78 @@
+---
+title: 简单封装个对象池
+sidebar_position: 8
+---
+# 简单封装个对象池
+
+看到公司使用 `ObjectPool` 对象池缓存rabbitmq连接
+
+看了下具体实现,感觉用起来太繁琐
+
+需要实现 `IPooledObjectPolicy` 接口, 自定义一个 `Policy`
+
+而这个接口中最主要的可能就是 `Create` 方法, 即在池中无对象的情况下如何创建新的
+
+所以我觉得可以尝试封装一下,简化使用
+
+## 第一版
+
+首先定义一个泛型 `Policy`
+
+`MyPoolPolicy`
+
+```csharp
+public class MyPoolPolicy<T> : IPooledObjectPolicy<T>
+{
+    public static Func<T> CreateFunc = null;
+    public static Func<T, bool> ReturnFunc = null;
+    public T Create()
+    {
+        if (CreateFunc == null)
+            return default;
+        return CreateFunc();
+    }
+    public bool Return(T obj)
+    {
+        return ReturnFunc(obj);
+    }
+}
+```
+
+定义两个静态的委托, 修改委托即可改变 `Create` 中的实现
+
+然后简单写一个静态工具方法用于创建对象池
+
+```csharp
+public class PoolTool
+{
+    public static ObjectPool<T> CreatePool<T>(Func<T> create, Func<T, bool> returnFunc = null) where T : class
+    {
+        MyPoolPolicy<T>.CreateFunc = create;
+        returnFunc ??= item => true;
+        MyPoolPolicy<T>.ReturnFunc = returnFunc;
+        return new DefaultObjectPool<T>(new MyPoolPolicy<T>());
+    }
+}
+```
+
+一般来说 `Return` 不是太重要,可以给个默认的实现
+
+使用的时候就比较简单了
+
+```csharp
+var pool = PoolTool.CreatePool(() => new MyClass {
+    // 一些自定义的东西
+});
+```
+
+这样就可以获取到一个可用的对象池, 调用 `pool.Get()` 就可以生成一个 `MyClass` 对象
+
+
+
+
+
+
+
+
+
+
