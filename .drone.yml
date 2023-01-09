@@ -6,6 +6,9 @@ platform:
   os: linux
   arch: arm64
 
+clone:
+  skip_verify: true
+
 steps:
   - name: pack
     when:
