@@ -60,12 +60,76 @@ public class PoolTool
 使用的时候就比较简单了
 
 ```csharp
-var pool = PoolTool.CreatePool(() => new MyClass {
+var pool = PoolTool.CreatePool(() => {
     // 一些自定义的东西
+    return new MyClass {
+        ...
+    }
 });
 ```
 
 这样就可以获取到一个可用的对象池, 调用 `pool.Get()` 就可以生成一个 `MyClass` 对象
+
+## 第二版
+
+上一版存在一个问题, 由于只有一个静态的委托对象, 所以当我再次调用 `PoolTool.CreatePool<MyClass>()` 传入新委托时, 之前创建的 pool 实现会被修改为传入的新的委托, 这可能会产生一些问题, 虽然在一般情况下一种类型只会有一种实现, 但是封装的时候也必须要考虑的到这种情况
+
+```csharp
+public class MyPoolPolicy<T> : IPooledObjectPolicy<T>
+{
+    /// <summary>
+    /// 每个pool实例的index标记,用于从集合中取出对应的委托
+    /// </summary>
+    public int? Index { get; set; }
+    public static Func<int, T> CreateFunc = null;
+    public static Func<int, T, bool> ReturnFunc = null;
+    public static List<Func<T>> CreateFuncs = new();
+    public static List<Func<T, bool>> ReturnFuncs = new();
+    public MyPoolObjectPolicy() { }
+    public MyPoolObjectPolicy(int index)
+    {
+        Index = index;
+    }
+
+    public T Create()
+    {
+        return CreateFunc(Index.Value);
+    }
+
+    public bool Return(T obj)
+    {
+        return ReturnFunc(Index.Value, obj);
+    }
+}
+
+public class PoolTool
+{
+    public static ObjectPool<T> CreatePool<T>(Func<T> create, Func<T, bool> returnFunc = null) where T : class
+    {
+        MyPoolPolicy<T>.CreateFuncs.Add(create);
+        returnFunc ??= item => true;
+        MyPoolPolicy<T>.ReturnFuncs.Add(returnFunc);
+
+        var policy = new MyPoolPolicy<T>(MyPoolPolicy<T>.CreateFuncs.Count - 1);
+
+        MyPoolPolicy<T>.CreateFunc = (index) => MyPoolPolicy<T>.CreateFuncs[index]();
+        MyPoolPolicy<T>.ReturnFunc = (index, item) => MyPoolPolicy<T>.ReturnFuncs[index](item);
+        return new DefaultObjectPool<T>(policy);
+    }
+}
+```
+
+每次传入的委托会放到 `CreateFuncs,ReturnFuncs` 集合中,
+
+并且每个新建的pool实例都会有一个用于标记的 `Index`
+
+两者配合即可让同一个 `MyPoolPolicy` 拥有多个实现
+
+:::caution
+本文只是提供一个简单的思路, 更加复杂的问题需要结合实际情况考虑再做修改
+:::
+
+
 
 
 
