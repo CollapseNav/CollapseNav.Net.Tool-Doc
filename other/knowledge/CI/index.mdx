@@ -5,8 +5,14 @@ sidebar_position: 2
 
 我使用的是 [gitea](https://gitea.io/zh-cn/) + [drone ci](https://www.drone.io/) 组合的cicd系统
 
-虽然可以在drone ci中配置部署的相关事宜, 但在我的使用场景下, drone 只做了打包和推送镜像
+从功能上来说, gitlab 更强, 但是对硬件资源的要求也更高
 
-服务的部署暂时还需要在 k3s 中手动操作
+现阶段我的服务大部分都部署在 **树莓派** 上, 内存有限, 并且性能相对也不高, 所以就没有考虑高资源消耗的方案
 
+![docker-stats](/img/gitea/gitea-drone-stats.png)
 
+上图是部署之后的资源占用情况, 内存使用比我见过的 gitlab + Jenkins 组合低至少两个数量级, 非常适合资源受限的场景了
+
+再加上我使用 k3s 管理服务, 代码仓库只要能做到 ci 即可, 代码提交后自动打包镜像推送到 nexus3 上, 然后根据心情手动重启更新pod镜像
+
+所以资源能省一点是一点

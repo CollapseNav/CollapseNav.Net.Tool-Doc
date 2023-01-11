@@ -1,0 +1,154 @@
+---
+title: 部署gitea+drone
+sidebar_position: 1
+---
+
+## 部署gitea
+
+```bash
+docker run -itd \
+    -p 8080:3000 \
+    -p 8022:22 \
+    -v ~/gitea:/data \
+    --name gitea \
+    gitea/gitea
+```
+使用以上的命令可以将 gitea 服务部署在宿主机的 `8080` 端口上
+
+相关的数据文件映射到 `~/gitea` 目录中, 方便日后可能会出现的修改
+
+## 配置gitea
+
+初次打开gitea时需要先配置一些东西
+
+**第一步** 先确认数据库, 支持 `MySQL,PostgreSQL,MSSQL,SQLite3`
+
+![gitea-db](/img/gitea/gitea-db.png)
+
+为了方便, 我一般选择使用 `SQLite3`
+
+**第二步** 是确认服务器设置
+
+![gitea-service](/img/gitea/gitea-service.png)
+
+以下是建议修改的
+
+* 站点名称: 浏览器打开时标签页显示的文字
+* 基础URL: 平时访问时使用的地址, 本文将服务开在了 `8080` 端口, 所以建议使用 `http://localhost:8080/`
+
+由于我用容器启动的服务, 所以不需要考虑各种路径问题
+
+**第三步** 是可选设置
+
+![gitea-last](/img/gitea/gitea-last.png)
+
+建议只填写一个 管理员账号 即可
+
+## 配置应用
+
+进入gitea之后点击右上角的用户,在下拉中选择**设置**
+
+![gitea-setting](/img/gitea/gitea-setting.png)
+
+在打开后的页面点击**应用**tab页
+
+![gitea-yy](/img/gitea/gitea-yy.png)
+
+然后填写最下方的 **管理 OAuth2 应用程序**
+
+![gitea-auth](/img/gitea/gitea-auth.png)
+
+这里的应用名称可以随便填, 只是个标识
+
+下面的 **重定向URI** 非常重要, 格式必须是 `{drone的地址}/login`
+
+待会要在 8081 端口上部署drone服务
+
+这些填写好之后点击**创建应用**
+
+![gitea-copy](/img/gitea/gitea-copy.png)
+
+之后会切换到新的页面, 注意要把其中的 `客户端ID` 和 `客户端密钥` 保存下来
+
+## 部署drone
+
+```bash
+# gitea 的地址 必须保证在 drone 部署的机器上可以访问到
+gitea_server="http://172.30.4.210:8080/"
+# drone 的域名
+drone_server="172.30.4.210:8081"
+# http 或 https
+drone_proto="http"
+# admin 用户名
+admin_user="root"
+# openssl rand -hex 16 随机生成一个
+drone_rpc_secret="ce6a54f5255f0f0851eab0899a9678ee"
+# gitea 中配置的 客户端ID
+drone_client_id="3255522c-6d75-44c9-ae4e-357f82c2de9c"
+# gitea 中配置完应用之后会同时产生一个 secret 客户端密钥
+client_secret="gto_wi3unbbltz2cyerd2jbiu2xu7ogeo7m2tjm2arwf2ydz5i57znta"
+
+docker rm -f drone runner
+
+docker run -itd \
+    -p 8081:80 \
+    -v ~/drone:/data \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -e DRONE_GITEA_SERVER=${gitea_server} \
+    -e DRONE_GITEA_CLIENT_ID=${drone_client_id} \
+    -e DRONE_GITEA_CLIENT_SECRET=${client_secret} \
+    -e DRONE_RPC_SECRET=${drone_rpc_secret} \
+    -e DRONE_SERVER_HOST=${drone_server} \
+    -e DRONE_SERVER_PROTO=${drone_proto} \
+    -e DRONE_LOGS_TRACE=true \
+    -e DRONE_USER_CREATE=username:${admin_user},admin:true \
+    --restart=always \
+    --detach=true \
+    --name=drone \
+    drone/drone
+
+docker run -itd \
+    -p 8082:3000 \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -e DRONE_RPC_PROTO=${drone_proto} \
+    -e DRONE_RPC_HOST=${drone_server} \
+    -e DRONE_RPC_SECRET=${drone_rpc_secret} \
+    -e DRONE_RUNNER_CAPACITY=2 \
+    -e DRONE_RUNNER_NAME=${HOSTNAME} \
+    -e DRONE_LOGS_TRACE=true \
+    -e DRONE_AGENTS_ENABLED=true \
+    --restart always \
+    --name runner \
+    drone/drone-runner-docker
+```
+
+复制上面的简单脚本, 修改一下参数
+
+* `drone_client_id`: 之前保存的`客户端ID`
+* `client_secret`: 之前保存的`客户端密钥`
+* `admin_user`: **管理员**登录的账户名称
+* `gitea_server`: gitea的地址
+* `drone_server`: drone的域名
+* `drone_proto`: drone的地址类型,http/https
+* `drone_rpc_secret`: rpc密钥, 可以用 `openssl rand -hex 16` 生成
+
+执行脚本即可部署 drone + runner
+
+:::note
+这里的 `172.30.4.210` 是本地docker的地址
+:::
+
+然后浏览器访问 [http://172.30.4.210:8081](http://172.30.4.210:8081)
+
+![drone-home](/img/gitea/drone-home.png)
+
+各个版本的drone可能会有点不一样, 如果和截图差不多的, 可以直接点击图中的按钮
+
+如果不一样, 可以直接在浏览器中访问 [http://172.30.4.210:8081/login](http://172.30.4.210:8081/login)
+
+![drone-auth](/img/gitea/drone-auth.png)
+
+如果已经登录过 gitea,则会直接尝试获取授权, 点击确认即可
+
+没登录的话输入账号密码登录即可
+
