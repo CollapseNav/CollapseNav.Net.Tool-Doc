@@ -1,0 +1,57 @@
+---
+title: 碰到的一些问题
+sidebar_position: 999
+---
+
+我自己在使用的时候会碰到一些奇奇怪怪的问题, 在此记录一下
+
+## 在 arm 中部署drone, 但是一直 pending
+
+我的服务部署在 arm/arm64 上, 触发任务之后卡住
+
+任务状态一直为  `Step is pending` 无法执行
+
+这种情况下可以在 steps 的同级定义一下 platform
+
+```yml
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+    ......
+```
+
+指定平台之后就可以正常运行了
+
+## git clone 触发证书问题
+
+当代码仓库为 https 的时候可能会出现一些证书问题, 导致无法正常拉取代码
+
+比如出现
+
+`SSL certificate problem: unable to get local issuer certificate`
+
+`x509 ******`
+
+之类的问题
+
+可以尝试在 steps 的同级修改 clone 设置
+
+```yml
+clone:
+  skip_verify: true
+
+steps:
+    ......
+```
+
+修改 `skip_verify` 值跳过验证
+
+
+
+
+
+
+
+
