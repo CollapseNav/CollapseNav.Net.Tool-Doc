@@ -1,0 +1,221 @@
+---
+title: 通过sse推送服务器消息
+sidebar_position: 6
+---
+SSE(Sever-Sent Event)服务器推送事件
+
+SSE作用非常简单, 就是让服务端向客户端推送消息
+
+乍一看和 websocket 作用相同, 但实际上两者有不少区别
+
+* SSE 基于HTTP协议, 基本上所有后端服务都支持, 而 websocket 是一个独立的协议, 各种支持可能不是很全
+* SSE 只能由 服务器向浏览器推送, websocket 可以进行双向通信, 因此两者的消耗也会有差距
+* SSE 默认支持断线重连, 相对来说更加省心, websocket 则要自己实现
+
+我暂时了解到的就这些了, 本文就简单介绍下 SSE 的使用
+
+## 使用中间件的简单做法
+
+```csharp
+using System.Text;
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddCors(action => action.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+var app = builder.Build();
+app.UseCors();
+app.Use(async (context, next) =>
+{
+    // 跳过非 /connect/sse 的请求
+    if (context.Request.Path.Value.ToLower() == "/connect/sse")
+    {
+        // 记录请求的时间
+        var flag = DateTime.Now;
+        // 长连接
+        context.Response.Headers.Add("Connection", "keep-alive");
+        // 必须将 content-type 设置为 text/event-stream
+        context.Response.Headers.Add("Content-Type", "text/event-stream");
+        // 60秒后自动断开连接
+        while ((DateTime.Now - flag).TotalSeconds < 60)
+        {
+            // 向response中的data中写入时间
+            await context.Response.Body.WriteAsync(Encoding.UTF8.GetBytes($"data:{DateTime.Now.ToString()}\n\n"));
+            await Task.Delay(666);
+        }
+    }
+    await next();
+});
+app.Run();
+```
+
+使用中间件建立sse连接可能是最简单的
+
+只需要配置跨域和一个中间件即可
+
+中间件修改 `response` 的 `headers`
+
+* 将 `Connection` 设置为 `keep-alive` 长连接
+* 将 `Content-Type` 设置为 `text/event-stream`, 这是 sse 连接必须的
+
+上面是服务端的代码, 客户端的代码相对来说也非常简单
+
+```html
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        var source = null;
+        function connect () {
+            if ('EventSource' in window) {
+                if (source != null)
+                    source.close();
+                source = new EventSource(`http://localhost:5000/Connect/SSE`);
+                var result = document.getElementById('result');
+                source.onopen = () => result.innerHTML += "SSE通道已建立...<br/>";
+                source.onmessage = event => result.innerHTML += "Message: " + event.data + "<br/>";
+                source.onerror = event => {
+                    result.innerHTML += "SSE通道发生错误<br/>";
+                    source.close();
+                };
+            }
+        }
+        function closeEvent () {
+            document.getElementById("result").innerHTML += "主动关闭sse连接"+"<br/>";
+            source.close();
+        }
+    </script>
+</head>
+<body>
+    <div>
+        <button onclick="connect()">打开连接</button>
+        <button onclick="closeEvent()">关闭连接</button>
+    </div>
+    <div id="result"></div>
+</body>
+</html>
+```
+
+
+通过 `new EventSource` 创建连接, 然后为对应的事件绑定实现
+
+这里的例子就只是简单地将接收到的 `data` 加到 `result` 中
+
+点击 `打开连接` 的按钮之后, 就会开始尝试建立连接, 当创建成功之后会触发 `onopen事件`
+
+当服务器推送消息的时候会触发 `onmessage事件` 本文的例子是显示服务器时间
+
+sse的消息主要由4个部分组成 `id,event,message,retry`
+
+* id: 数据的标识
+* event: 事件的类型
+* message: 具体的消息内容
+* retry: 断开重连的时间间隔
+
+可能比较常用的就是 `event` 和 `message`
+
+
+## 使用 controller 的常规做法
+
+可能大多数情况下写一个  `controller` 会优先于写 中间件, 两者的做法大致上没什么区别
+
+都要先 **修改headers**, 然后向response中写入消息
+
+```csharp
+using System.Text;
+using Microsoft.AspNetCore.Mvc;
+namespace ssetest.Controllers;
+[ApiController]
+[Route("[controller]")]
+public class ConnectController : ControllerBase
+{
+    [HttpGet("SSE")]
+    public async Task SSEAsync()
+    {
+        Response.Headers.Add("Connection", "keep-alive");
+        Response.Headers.Add("Content-Type", "text/event-stream");
+        var flag = DateTime.Now;
+        while ((DateTime.Now - flag).TotalSeconds < 60)
+        {
+            await Response.Body.WriteAsync(Encoding.UTF8.GetBytes($"data:{DateTime.Now}\n\n"));
+            await Task.Delay(666);
+        }
+    }
+}
+```
+
+`controller` 中的实现与中间件中基本上没什么区别
+
+`html` 的页面部分也不需要做修改
+
+## 自定义事件
+
+sse 可以自定义事件
+
+默认情况下所有的消息都触发 `onmessage事件`
+
+但是在复杂的使用环境下可能需要对多种消息做区分, 这时候就可以通过自定义消息实现
+
+```csharp
+using System.Text;
+using Microsoft.AspNetCore.Mvc;
+namespace ssetest.Controllers;
+[ApiController]
+[Route("[controller]")]
+public class ConnectController : ControllerBase
+{
+    [HttpGet("SSE")]
+    public async Task SSEAsync()
+    {
+        Response.Headers.Add("Connection", "keep-alive");
+        Response.Headers.Add("Content-Type", "text/event-stream");
+        var flag = DateTime.Now;
+        while ((DateTime.Now - flag).TotalSeconds < 60)
+        {
+            await Response.Body.WriteAsync(Encoding.UTF8.GetBytes($"event:pushtime\ndata:{DateTime.Now}\n\n"));
+            await Task.Delay(666);
+        }
+    }
+}
+```
+
+然后在 `html`页面中添加一个事件监听
+
+```html
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <script>
+            var source = null;
+            function connect () {
+                if ('EventSource' in window) {
+                    if (source != null)
+                        source.close();
+                    source = new EventSource(`http://localhost:5135/Connect/SSE`);
+                    source.addEventListener('pushtime', function (event) {
+                        document.getElementById("result").innerHTML += "pushtime: " + event.data + "<br/>";
+                    });
+                }
+            }
+            function closeEvent () {
+                document.getElementById("result").innerHTML += "主动关闭sse连接"+"<br/>";
+                source.close();
+            }
+        </script>
+    </head>
+    <body>
+        <div>
+            <button onclick="connect()">打开连接</button>
+            <button onclick="closeEvent()">关闭连接</button>
+        </div>
+        <div id="result"></div>
+    </body>
+</html>
+```
+
+这样就可以通过自定义不同的事件区分不同的消息
+
+
