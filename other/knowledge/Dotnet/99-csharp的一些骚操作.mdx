@@ -1,0 +1,224 @@
+---
+title: C#的一些骚操作
+sidebar_position: 99
+---
+# C#的一些操作
+
+我们`C#`实在是太厉害了!(甲亢)
+
+演进了这么多年, 现在的语法已经和十年前大不一样了
+
+下面就介绍一些骚~~平时比较少见到的~~操作
+
+## 对非集合对象使用foreach
+
+在日常搬砖中, `foreach` 是最常使用的遍历数据的方法
+
+但是通常情况下我们只会对集合类型或者实现了 `IEnumerable` 接口的类型使用
+
+其实, 即使是不实现 `IEnumerable` 的对象, 也可以使用 `foreach`
+
+```csharp
+foreach (var item in new TestClass())
+    Console.WriteLine(item);
+
+public class TestClass
+{
+    public IEnumerator<string> GetEnumerator()
+    {
+        yield return "1";
+        yield return "2";
+        yield return "3";
+        yield return "4";
+        yield return "5";
+    }
+}
+```
+
+实际上只需要实现 `GetEnumerator()` 即可
+
+也可以使用扩展方法为 `TestClass` 提供 `GetEnumerator()` 方法
+
+
+```csharp
+foreach (var item in new TestClass())
+    Console.WriteLine(item);
+public class TestClass
+{
+}
+public static class TestClassExt
+{
+    public static IEnumerator<string> GetEnumerator(this TestClass obj)
+    {
+        yield return "1";
+        yield return "2";
+        yield return "3";
+        yield return "4";
+        yield return "5";
+    }
+}
+```
+
+这样可以在不修改 `TestClass` 内部实现的情况下为其实现 `foreach` 功能
+
+## 无限延申的 空合并运算符(??)
+
+> 如果 A 不为空, 就赋值给 C, 否则将 B 赋值给 C
+
+这是一个很常见的场景, 以前的一般做法是使用 if else 或者三元
+
+```csharp
+if (a != null)
+    c = a;
+else
+    c = b;
+
+c = a != null ? a : b;
+```
+
+针对这种场景, 现在可以使用 `空合并运算符(??)` 实现
+
+```csharp
+c = a ?? b;
+```
+
+如果 "候选项" 很多, `??` 还可以继续延申
+
+```csharp
+c = a ?? b ?? d ?? e ?? f ?? g;
+```
+
+不过有一点需要注意, `??` 的运算优先级比较低, 如下
+
+```csharp
+var value = "1" + a.Value ?? b.Value;
+```
+
+假设 `a.Value=null`, `b.Value="10"`
+
+最终 `value` 的值会 **是"1", 而不是"110"**
+
+## 通过元组简化赋值操作
+
+当我们使用依赖注入的时候, 经常需要将构造函数中注入的对象赋值到私有变量中
+
+```csharp
+class SomeService
+{
+    private readonly Type0 _type0;
+    private readonly Type1 _type1;
+    private readonly Type2 _type2;
+    private readonly Type3 _type3;
+    // 更多
+    public SomeService(Type0 type0, Type1 type1, Type2 type2, Type3 type3)
+    {
+        _type0 = type0;
+        _type1 = type1;
+        _type2 = type2;
+        _type3 = type3;
+        // 更多
+    }
+}
+```
+
+我是不怎么喜欢写这么多赋值操作的, 所以找了一些可以简化操作的方法
+
+1. 找一个可以提供快捷操作的编辑器或者插件
+2. 熟练地使用多光标快速完成多行代码的编写
+3. 使用元组批量赋值
+
+以上的1,2两点都需要编辑器支持, 所以下面就只演示3
+
+```csharp
+class SomeService
+{
+    private readonly Type0 _type0;
+    private readonly Type1 _type1;
+    private readonly Type2 _type2;
+    private readonly Type3 _type3;
+    // 更多
+    public SomeService(Type0 type0, Type1 type1, Type2 type2, Type3 type3)
+    {
+        (_type0, _type1, _type2, _type3) = (type0, type1, type2, type3);
+        // 更多
+    }
+}
+```
+
+## 使用元组代替简单的class
+
+经常会有需要返回2-4个变量的时候, 一般会为这几个变量新建一个新的 `class`, 或者为方法添加几个 `out参数`
+
+如果不考虑其他地方的复用, 可以使用元组偷个懒
+
+```csharp
+(var a, var b, var c, var str) = Test();
+var tupleValue = Test();
+
+(int, int, int, string) Test()
+{
+    return (1, 2, 3, "233");
+}
+```
+
+在返回值的元组定义中还可以为每个返回的元素设置变量名称
+
+```csharp
+(var a, var b, var c, var str) = Test();
+var tupleValue = Test();
+var value = tupleValue.value1 + tupleValue.value2 + tupleValue.value3;
+
+(int value1, int value2, int value3, string strValue233) Test()
+{
+    return (1, 2, 3, "233");
+}
+```
+
+此时元组使用起来与一个普通的对象没有太多区别
+
+## 枚举的 Flags
+
+```csharp
+enum RoleEnum: byte
+{
+    Admin = 1 << 0,
+    User = 1 << 1,
+    Guest = 1 << 2,
+}
+```
+
+经常可以看到类似上面的枚举定义, 每个枚举的值不是常见的 `1,2,3,4`
+
+而是通过 `移位(<</>>)` 操作得出的 `1,2,4`
+
+这样可以充分利用枚举变量的`位`
+
+按照一般的做法, 如果一个人 既是 `User` 又是 `Admin`, 那么我可能至少需要两个`byte`的空间来存储这两个角色
+
+* `Admin` 的值 1 的二进制是 `00000001`
+* `User` 的值 2 的二进制是 `00000010`
+* `RoleEnum.Admin | RoleEnum.User` 的值 3 的二进制是 `00000011`
+
+此时相当于使用一个 `byte` 存储了两个枚举值, 最多可以存8个
+
+但是在 `RoleEnum` 的定义中没有值为 3 的枚举项, 是无意义的
+
+碰到这种情况就可以使用 `Flags` 特性
+
+```csharp
+var roles = RoleEnum.Admin | RoleEnum.User;
+Console.WriteLine(roles); // Admin, User
+[Flags]
+enum RoleEnum: byte
+{
+    Admin = 1 << 0,
+    User = 1 << 1,
+    Guest = 1 << 2,
+}
+```
+
+这时候打印 `roles`, 就可以知道其中包含的枚举
+
+如果使用 `long` 类型, 可以支持更多枚举值
+
+
