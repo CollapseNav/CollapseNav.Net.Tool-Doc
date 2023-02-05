@@ -221,4 +221,29 @@ enum RoleEnum: byte
 
 如果使用 `long` 类型, 可以支持更多枚举值
 
+## 万物皆可 await
+
+自从做了 webapi 之后, 就患上了 await 强迫症, 干啥都想 await 一下
+
+```csharp
+await await await await await await "CollapseNav";
+public static class AwaitExt
+{
+    public static UselessAwaiter<T> GetAwaiter<T>(this T obj) => new UselessAwaiter<T>();
+}
+
+public class UselessAwaiter<T> : INotifyCompletion
+{
+    public bool IsCompleted { get; }
+    public T GetResult() => default;
+    public void OnCompleted(Action action) => action();
+}
+```
+
+这样的话, await 就可以无限延申
+
+~~但是没什么卵用~~
+
+
+
 
