@@ -1,0 +1,62 @@
+---
+title: winform&wpf中开启http服务
+sidebar_position: 9
+---
+
+前几天水群的时候看到有个老哥提了个问题
+
+他想在wpf项目中开启一个http服务, 希望能有一个简单易用的方案
+
+当时他的做法是使用 `HttpListener` 监听端口, 用起来还挺麻烦
+
+在 `.Net6` 下可以非常简单地实现这个功能
+
+
+## 修改 csproj
+
+首先修改 `csproj` 项目文件
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+</Project>
+```
+
+使用 `FrameworkReference` 引入 `Microsoft.AspNetCore.App` 框架
+
+这样就不需要单独引用零零碎碎的包
+
+## 启动host
+
+```csharp
+public partial class MainWindow : Window
+{
+    public MainWindow()
+    {
+        Task.Run(() =>
+        {
+            var builder = WebApplication.CreateBuilder();
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+            var app = builder.Build();
+            app.MapControllers();
+            app.Run();
+        });
+        InitializeComponent();
+    }
+}
+```
+
+开启一个 `Task`
+
+然后当成一般的 `webapi` 项目一样写即可
+
+甚至可以把已有的 `webapi` 代码直接复制过来
