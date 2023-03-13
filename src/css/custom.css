@@ -38,6 +38,16 @@ html[data-theme='dark'] .docusaurus-highlight-code-line {
   background-color: rgba(0, 0, 0, 0.3);
 }
 
-.mainimg{
+.mainimg {
   border-radius: 10px;
+}
+.bilibili {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.bshare {
+  position: relative;
+  padding-bottom: 65%;
 }

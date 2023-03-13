@@ -22,7 +22,9 @@ const config = {
       ({
         id: 'other',
         path: 'other',
-        remarkPlugins: [require('mdx-mermaid')],
+        remarkPlugins: [[require('mdx-mermaid'), {
+          theme: { light: 'default', dark: 'dark' }
+        }]],
         routeBasePath: 'other',
         sidebarPath: require.resolve('./sidebarsOther.js'),
       }),
