@@ -1,0 +1,248 @@
+---
+title: 前言-原则
+sidebar_position: 0
+---
+
+**六大原则**是设计模式的基石, 是后面所提具体的二十三种设计模式的指导思想
+
+## 总则: 开放封闭原则
+
+对扩展开放, 对修改封闭
+
+当我们需要添加新的功能时, 可以通过添加新的代码或者模块来实现, 而不需要修改已有的功能模块, 这样可以避免新增的功能影响到原来已经在正常运行的功能
+
+最简单的例子就是**函数重载**
+
+```csharp
+public void Add(int i)
+{
+    this.List.Add(i.ToString("N"));
+}
+public void Add(string i)
+{
+    this.List.Add(i);
+}
+public void Add(DateTime time)
+{
+    this.List.Add(time.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+}
+```
+
+当我们需要Add一个新的类型时, 只需要添加一个重载函数即可, 不需要修改已有的Add函数
+
+以下算是一个反例
+
+```csharp
+public void Add(object obj)
+{
+    if (obj is int i)
+        this.List.Add(i.ToString("N"));
+    if (obj is string str)
+        this.List.Add(str);
+    if (obj is DateTime time)
+        this.List.Add(time.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+}
+```
+
+## 单一职责原则
+
+一个类或者一个方法只有一个职责, 只做一件事情, 只处理一个业务
+
+该原则要求尽可能降低类或方法的复杂度, 提高可读性
+
+下面先来一个简单的反例
+
+```csharp
+public void SetUser(string name, int age, DateTime birthday)
+{
+    this.name = name;
+    this.age = age;
+    this.birthday = birthday;
+}
+```
+
+假设类中有一个用于设置用户信息的`SetUser`方法, 可以通过传入三个参数设置三个字段的值
+
+如果我想要单独设置其中的某一个字段, 在现在这种情况下我需要先获取另外两个字段的值, 然后一起传给这个函数
+
+此时这个函数拥有三个职责, `设置name` `设置age` `设置birthday`
+
+这在使用的时候就非常不方便, 我们可以根据这三个职责将函数进行拆分
+
+```csharp
+public void InitUser(string name, int age, DateTime birthday)
+{
+    this.name = name;
+    this.age = age;
+    this.birthday = birthday;
+}
+public void SetName(string name)
+{
+    this.name = name;
+}
+public void SetAge(int age)
+{
+    this.age = age;
+}
+public void SetBirthday(DateTime birthday)
+{
+    this.birthday = birthday;
+}
+```
+
+将原来的`SetUser`改为`InitUser`, 意为`初始化用户信息`, 这时候才需要传全部的三个参数
+
+新增了 `SetName` `SetAge` `SetBirthday`三个函数, 分别对应 `设置name` `设置age` `设置birthday`这三个职责
+
+## 里氏替换原则
+
+子类可以替换父类, 并保持父类的功能和特性, 父类可以出现的地方, 都可以使用其子类进行代替, 简单来说就是子类的行为应当尽量与父类保持一致
+
+下面来一个简单的反面例子
+
+```csharp
+public class User
+{
+    protected string name;
+    public virtual void SetName(string name)
+    {
+        this.name = name;
+    }
+}
+public class Student: User
+{
+    public override void SetName(string name)
+    {
+    }
+}
+```
+
+子类`Student`重写了`SetName`方法, 但是这个重写的方法并不会对`name`字段进行修改, 这无疑就违反了`SetName`方法的本意, 会让其他人在使用这个方法时会不小心掉进坑里
+
+```csharp
+public class User
+{
+    protected string name;
+    public virtual void SetName(string name)
+    {
+        this.name = name;
+    }
+}
+public class Student: User
+{
+    public override void SetName(string name)
+    {
+        this.name = name;
+    }
+}
+```
+
+一般来说正常实现这个方法即可
+
+## 依赖倒置原则
+
+高层模块不应该依赖于低层模块, 二者都应该依赖于抽象, 而不是具体的实现细节
+
+
+```csharp
+public class Apple
+{
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+}
+public class Pineapple
+{
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+}
+public class Pen
+{
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+}
+public class PenPineappleApplePen
+{
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+}
+public class User
+{
+    private List<Apple> Apples { get; set; }
+    private List<Pineapple> Pineapples { get; set; }
+    private List<Pen> Pens { get; set; }
+    private List<PenPineappleApplePen> PenPineappleApplePens { get; set; }
+
+    public void AddApple(Apple good)
+    {
+        Apples.Add(good);
+    }
+    public void AddPineapple(Pineapple good)
+    {
+        Pineapples.Add(good);
+    }
+    public void AddPen(Pen good)
+    {
+        Pens.Add(good);
+    }
+    public void AddPenPineappleApplePen(PenPineappleApplePen good)
+    {
+        PenPineappleApplePens.Add(good);
+    }
+
+    public decimal Count()
+    {
+        decimal sum = 0;
+        sum += Apples.Sum(item => item.Price);
+        sum += Pineapples.Sum(item => item.Price);
+        sum += Pens.Sum(item => item.Price);
+        sum += PenPineappleApplePens.Sum(item => item.Price);
+        return sum;
+    }
+}
+```
+
+上面的`User`可以购买四种商品, 每种商品都可以添加多个, 加完之后还可以结算价格
+
+但每增加一种商品, `User`类就需要进行一次修改, 这无疑是非常麻烦且违反开闭原则的
+
+所以我们可以简单地修改一下
+
+```csharp
+public abstract class Good
+{
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+}
+public class Apple: Good
+{
+}
+public class Pineapple: Good
+{
+}
+public class Pen: Good
+{
+}
+public class PenPineappleApplePen: Good
+{
+}
+public class User
+{
+    private List<Good> Goods { get; set; }
+
+    public void AddGood(Good good)
+    {
+        Goods.Add(good);
+    }
+
+    public decimal Count()
+    {
+        decimal sum = Goods.Sum(item => item.Price);
+        return sum;
+    }
+}
+```
+
+让`User`不再依赖具体的商品, 而是依赖抽象的`Good`, 这样即使具体的商品实现部分有增减修改, 只要抽象的`Good`没有变化, 就不需要修改现有的模块
+
+
+
