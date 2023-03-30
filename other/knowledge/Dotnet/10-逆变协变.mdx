@@ -1,0 +1,99 @@
+---
+title: C#泛型的逆变协变
+sidebar_position: 10
+---
+
+## 前编
+
+一般来说, 泛型的作用就类似一个占位符, 或者说是一个参数, 可以让我们把类型像参数一样进行传递, 尽可能地复用代码
+
+**我有个朋友**, 在使用的过程中发现一个问题
+
+```csharp
+IFace<object> item = new Face<string>(); // CS0266
+
+public interface IFace<T>
+{
+    string Print(T input);
+}
+public class Face<T> : IFace<T>
+{
+    public string Print(T input) => input.ToString();
+}
+```
+Q: &ensp; `string` 明明是 `object` 的子类, 为啥这样赋值会报错呢？？？  
+A: &ensp; 因为 `Face<string>` 实现的是 `IFace<string>`, 而 `IFace<string>` 并不是 `IFace<object>` 的子类      
+Q: &ensp; 但是 `string` 是 `object` 的子类啊, `IFace<string>` 可不就是 `IFace<object>` 吗?     
+A: &ensp; 如果只论接口定义, 看起来确实是这样的, 但是你要看内部实现的方法, `IFace<string>` 的 `Print` 方法参数是 `string`, 但是 `IFace<object>` 的 `Print` 参数是 `object`, 如果上面的赋值可以成立, 就意味着允许 `Print(string input)` 方法传递任意类型的对象, 这样明显是有问题的    
+Q: &ensp; 但是我曾经看到过 `IEnumerable<object> list = new List<string>();` 这个为什么就可以    
+A: &ensp; 这就要讲到C#泛型里的**逆变协变**了    
+Q: &ensp; 细嗦细嗦
+
+## 逆变协变
+
+C#泛型中的逆变(in)协变(out)对于不常自定义泛型的开发来说(可能)是个很难理解的概念, 简单来说
+
+逆变(in): `I<子类> = I<父类>`   
+协变(out): `I<父类> = I<子类>`
+
+上面例子中提到的 `IEnumerable<object> list = new List<string>();` 体现的是协变, 符合**一般直觉**, 看起来就像是将**子类赋值给基类**
+
+转到 `IEnumerable<>` 的定义, 我们可以看到
+
+```csharp
+public interface IEnumerable<out T> : IEnumerable
+{
+    new IEnumerator<T> GetEnumerator();
+}
+```
+
+泛型 `T` 之前加了**协变**的关键词 `out`, 代表支持协变, 可以进行**符合直觉且和谐**的转化
+
+前编中提到的代码例子不适用并且也不能改造成**协变**, 只适合使用**逆变**
+
+相比于**符合直觉且和谐**的**协变**, **逆变**是**不符合直觉并且别扭**的
+
+```csharp
+IFace<string> item = new Face<object>();
+
+public interface IFace<in T>
+{
+    string Print(T input);
+}
+public class Face<T> : IFace<T>
+{
+    public string Print(T input) => input.ToString();
+}
+```
+
+这是一个**逆变**的例子, 与协变相似, 需要在泛型 `T` 之前加上关键词 `in`
+
+对比上方的**协变**, **逆变**看起来就像是将**基类赋值给子类**, 但这其实符合里氏代换的
+
+当我们调用 `item.Print` 时, 看起来允许传入的参数为 `string` 类型, 而实际上最终调用的 `Face<object>.Print` 是支持 `object` 的, 传入 `string` 类型的参数没有任何问题
+
+## 逆变协变的作用
+
+逆变(in)协变(out)的作用就是扩展泛型的用法, 帮助开发者更好地复用代码, 同时通过约束限制可能会出现的破坏类型安全的操作
+
+## 逆变协变的限制
+
+虽然上面讲了逆变(in)协变(out)看起来是什么样的, 但**我的那个朋友**还是有些疑问
+
+Q: &ensp; 那我什么时候可以用逆变, 什么时候可以用协变, 这两个东西用起来有什么限制?   
+A: &ensp; 简单来说, 有关泛型`输入`的用`逆变`, 关键词是`in`, 有关泛型`输出`的用`协变`, 关键词是`out`, 如果接口中既有输入又有输出, 就不能用逆变协变   
+Q: &ensp; 为什么这两个不能同时存在?     
+A: &ensp; `协变`的表现形式为将`子类赋值给基类`, 当进行`输出`相关操作时, 输出的对象类型为基类, 是将**子类转为基类**, 你可以说子类是基类;     
+`逆变`的表现形式为将`基类赋值给子类`, 当进行`输入`相关操作时, 输入的对象为子类, 是将**子类转为基类**, 这个时候你也可以说基类是子类;     
+如果**同时支持逆变协变**, 若先进行**子类赋值给基类**的操作, 此时`输出`的是基类, **子类转为基类**并不会有什么问题, 但进行`输入`操作时就是在将**基类转为子类**, 此时是无法保证类型安全的;     
+Q: &ensp; 听不懂, 能不能举个例子给我?       
+A: &ensp; 假设 `IEnumerable<>` 同时支持逆变协变, `IEnumerable<object> list = new List<string>();`进行赋值后, `list`中实际保存的类型是`string`, `item.First()`的`输出`类型为`object`, 实际类型是`string`, 此时说`string`是`object`没有任何问题, 协变可以正常发挥作用, 但是如果支持了逆变, 假设我们进行`输入`类型的操作, `item.Add()` 允许的参数类型为 `object`, 可以是任意类型, 但是实际上支持`string`类型, 此时的`object`绝无可能是`string`     
+Q: &ensp; 好像听懂了一点了, 我以后慢慢琢磨吧
+
+两者的限制简单总结就是
+
+`输入`的用`逆变`        
+`输出`的用`协变`
+
+
+
