@@ -1,0 +1,52 @@
+---
+title: 字符串配置
+sidebar_position: 4
+---
+
+1.3.2 版本基本上实现了根据字符串进行配置的功能, 不需要在定义Config的时候指定泛型
+
+```csharp
+public class TestDto
+{
+    public string Field0 { get; set; }
+    public int? Field1 { get; set; }
+    public bool Field2 { get; set; }
+    public double Field3 { get; set; }
+}
+```
+
+## 导入
+
+### 初版
+
+1.3.2之前的版本需要指定泛型
+
+```csharp
+var config = new ReadConfig<TestDto>()
+.Add("表头0", "Field0")
+.Add("表头1", "Field1");
+```
+
+这样虽然可以用字符串定义配置, 但只能用一部分
+
+
+### 字符串配置
+
+现在可以通过字符串指定导入时的类型
+
+```csharp
+var config = new ReadConfig("TestDto")
+.Add("表头0", "Field0")
+.Add("表头1", "Field1");
+IEnumerable<object> objs = config.ToEntity(excelPath);
+```
+
+`ReadConfig`构造函数中需要传入导入时生成的数据实体类型名称, 程序会通过反射获取对应的`Type`
+
+:::tip
+如果存在同名的数据实体, 可以通过写全命名空间进行指定
+:::
+
+
+
+

@@ -68,3 +68,15 @@ docker run -itd -p 5672:5672 -p 15672:15672 --restart always --name rabbitmq rab
 
 建议在实际部署的时候把端口换一下, 免得被人用默认端口攻击
 
+最好设置一下默认的账号密码
+
+```shell
+docker run -itd \
+    -p 5672:5672 \
+    -p 15672:15672 \
+    -e RABBITMQ_DEFAULT_USER=rabbitmq \
+    -e RABBITMQ_DEFAULT_PASS=abc@123 \
+    --restart always \
+    --name rabbitmq \
+    rabbitmq:management
+```
