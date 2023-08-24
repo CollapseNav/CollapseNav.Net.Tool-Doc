@@ -244,6 +244,60 @@ public class UselessAwaiter<T> : INotifyCompletion
 
 ~~但是没什么卵用~~
 
+## 自定义的隐式转换
+
+**隐式转换**是个大家很常用但是又不怎么在意的东西, 相比较于**显示转换**, 它帮助我们简化了转换数据时的操作
+
+以下是我们常用的隐式转换, 在将`int`转为`double`时无需做特殊的转换操作
+
+```csharp
+double num = 100;
+```
+
+一般来说这种方便的隐式转换只存在于"官方"提供的功能中, 假设现在有一个用户信息类`UserInfo`
+
+```csharp
+class UserInfo
+{
+    public UserInfo(string name, int age)
+    {
+        Name = name;
+        Age = age;
+    }
+    public string Name { get; set; }
+    public int Age { get; set; }
+}
+```
+
+我觉得使用`new`创建对象太繁琐, 希望使用`"张三,23"`这样经过序列化的字符串创建对象
+
+此时可以通过重载`implicit`达到隐式转换的效果
+
+```csharp
+UserInfo user = "张三,3";
+
+class UserInfo
+{
+    public UserInfo(string name, int age)
+    {
+        Name = name;
+        Age = age;
+    }
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public static implicit operator UserInfo(string sd)
+    {
+        var temps = sd.Split(',');
+        return new UserInfo(temps[0], int.Parse(temps[1]));
+    }
+}
+```
+
+
+
+
+
+
 
 
 
