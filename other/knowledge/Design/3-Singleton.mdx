@@ -1,0 +1,119 @@
+---
+title: 单例模式
+sidebar_position: 3
+---
+
+单例模式是一种**创建型**设计模式, 可以保证一个类型有且只有一个实例存在
+
+## 单例模式的适用于什么场景
+
+当一个类在程序运行期间只需要一个实例的时候, 就可以考虑将其做成单例模式
+
+例如一些全局的配置, 用来储存程序运行期间全局的共享配置, 或者可以做一个简单的消息管道, 程序中所有地方只需要这一个消息管道来发送和接收消息
+
+## 单例模式的实现
+
+单例模式有多种实现方式, 但是都离不开非公有的构造函数和静态成员变量
+
+下面根据我自己的经验, 介绍三种比较常见的实现
+
+### 饿汉式
+
+饿汉式在类型加载的时候就直接进行实例化
+
+```csharp
+public class Singleton {
+    private static Singleton instance = new Singleton();
+    private Singleton(){}
+    public static Singleton GetInstance() => instance;
+}
+```
+
+饿汉式最简单方便, 总有人说饿汉式会浪费内存, 但是在大多数情况下这点内存浪费可以忽略不计, 相比起其他业务中的浪费, 九牛一毛都算不上
+
+### 懒汉式
+
+懒汉式在第一次调用`GetInstance`的时候才进行实例化
+
+```csharp
+public class Singleton {
+    private static Singleton instance;
+    private Singleton(){}
+    public static Singleton GetInstance() => instance ??= new Singleton();
+}
+```
+
+懒汉式这种在调用`GetInstance`的时候才实例化的方式避免了大概率微不足道的内存浪费, 但又会出现线程安全问题
+
+### 双重校验锁
+
+双重校验锁通过加锁可以解决懒汉式多线程下的线程不安全问题
+
+```csharp
+public class Singleton
+{
+    private static volatile Singleton instance;
+    private static object lockobj = new Object();
+    private Singleton() { }
+    public static Singleton GetInstance()
+    {
+        if (instance == null)
+        {
+            lock (lockobj)
+            {
+                instance ??= new Singleton();
+            }
+        }
+        return instance;
+    }
+}
+```
+
+但是用饿汉式就不需要这么麻烦
+
+## 如何去使用
+
+设计一个单例类用于记录服务器的在线人数
+
+```csharp
+public sealed class LoginCounter
+{
+    private static readonly LoginCounter instance = new LoginCounter();
+    private LoginCounter() { }
+    public static LoginCounter GetInstance() => instance;
+
+    private List<User> OnlineUsers = new List<User>();
+    public int LoginCount { get => OnlineUsers.Count; }
+    public void Login(User user)
+    {
+        if (OnlineUsers.Any(item => item.Name == user.Name))
+            return;
+        OnlineUsers.Add(user);
+    }
+    public void Logout(User user)
+    {
+        if (!OnlineUsers.Any(item => item.Name == user.Name))
+            return;
+        OnlineUsers.RemoveAll(item => item.Name == user.Name);
+    }
+}
+public class User
+{
+    public string Name { get; set; }
+}
+```
+
+有人登录进来就使用
+
+```csharp
+LoginCounter.GetInstance().Login(user);
+```
+
+有人退出登录就使用
+
+```csharp
+LoginCounter.GetInstance().Logout(user);
+```
+
+
+
