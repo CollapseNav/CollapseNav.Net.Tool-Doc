@@ -3,7 +3,7 @@ title: 建造者模式
 sidebar_position: 4
 ---
 
-建造者模式是一种**创建型**的设计模式, 将一个对象的创建过程拆分成一个个小的部分, 每次决定其中的一个细节, 构建出一个较为复杂的对象
+建造者模式是一种**创建型**的设计模式, 将一个对象的创建过程拆分成一个个小的部分, 每次决定其中的一个细节, 构建出一个复杂对象
 
 对象的创建过程被拉长分散, 可能会经历一系列的复杂决策, 最终才会形成我们需要的对象
 
@@ -297,3 +297,196 @@ Character character2 = director.Build(builder);
 
 通过复用builder可以构造出不同属性的人物
 
+## 简化版建造者
+
+前面的经典版建造者模式在实际使用的时候比较繁琐, 需要经历 director --> builder --> character
+
+下面介绍一个简化版本的建造者, 省略掉 director, 直接在 builder 里完成构建
+
+## 简化版类图
+
+```mermaid
+---
+title: 简化版建造者模式
+---
+classDiagram
+
+Item <|-- Weapon  
+Item <|-- Armor  
+Profession <|-- Mage 
+Weapon <|-- Staff 
+Weapon <|-- Buckler 
+Armor <|-- Hood 
+Armor <|-- Leather 
+Armor <|-- Belt 
+
+MageBuilder --|> Builder
+Character <.. Builder 
+Character <.. MageBuilder 
+
+class Builder{
+    # string Name
+    # Profession Profession
+    # Weapon[] Weapons
+    # Armor[] Armors
+    # int Strength
+    # int Intelligence
+    + SetName(string)
+    + SetProfession(Profession)
+    + AddWeapon(Weapon)
+    + AddArmor(Armor)
+    + AddStrenght(int)
+    + AddIntelligence(int)
+    + Build(): Character
+}
+
+class MageBuilder{
+    # string Name
+    # Profession Profession
+    # Weapon[] Weapons
+    # Armor[] Armors
+    # int Strength
+    # int Intelligence
+    + SetName(string)
+    + SetProfession(Profession)
+    + AddWeapon(Weapon)
+    + AddArmor(Armor)
+    + AddStrenght(int)
+    + AddIntelligence(int)
+    + Build(): Character
+}
+
+class Character{
+    + string Name
+    + Profession Profession
+    + Weapon[] Weapons
+    + Armor[] Armors
+    + int Strength
+    + int Intelligence
+}
+
+class Item{
+    + Buff(Character)
+}
+class Weapon{
+    + Buff(Character)
+}
+class Staff{
+    + Buff(Character)
+}
+class Buckler{
+    + Buff(Character)
+}
+class Armor{
+    + Buff(Character)
+}
+class Hood{
+    + Buff(Character)
+}
+class Leather{
+    + Buff(Character)
+}
+class Belt{
+    + Buff(Character)
+}
+
+class Profession{
+    + string Name
+}
+
+class Mage{
+    + string Name
+}
+```
+
+## 代码
+
+人物部分的代码不需要进行修改
+
+只需要修改 `Builder` 部分, 然后移除 `CharacterDirector`
+
+```csharp
+public class MageBuilder : Builder
+{
+    public override Builder AddArmor(Armor armor)
+    {
+        Armors ??= new List<Armor>();
+        Armors.Add(armor);
+        return this;
+    }
+    public override Builder AddIntelligence(int intelligence)
+    {
+        Intelligence += intelligence;
+        return this;
+    }
+    public override Builder AddStrength(int strength)
+    {
+        Strength += strength;
+        return this;
+    }
+    public override Builder AddWeapon(Weapon weapon)
+    {
+        Weapons ??= new List<Weapon>();
+        Weapons.Add(weapon);
+        return this;
+    }
+    public override Builder SetName(string name)
+    {
+        Name = name;
+        return this;
+    }
+    public override Builder SetProfession(Profession profession)
+    {
+        Profession = profession;
+        return this;
+    }
+    public override Character Build()
+    {
+        var character = new Character()
+        {
+            Name = Name,
+            Weapons = Weapons.ToList(),
+            Armors = Armors.ToList(),
+            Profession = Profession,
+            Intelligence = Intelligence,
+            Strength = Strength,
+        };
+        Weapons.ForEach(item => item.Buff(character));
+        Armors.ForEach(item => item.Buff(character));
+        return character;
+    }
+}
+public abstract class Builder
+{
+    protected string Name;
+    protected Profession Profession;
+    protected List<Weapon> Weapons;
+    protected List<Armor> Armors;
+    protected int Strength;
+    protected int Intelligence;
+    public abstract Builder SetName(string name);
+    public abstract Builder SetProfession(Profession profession);
+    public abstract Builder AddWeapon(Weapon weapon);
+    public abstract Builder AddArmor(Armor armor);
+    public abstract Builder AddStrength(int strength);
+    public abstract Builder AddIntelligence(int intelligence);
+    public abstract Character Build();
+}
+```
+
+## 如何使用简化版建造者
+
+```csharp
+Builder builder = new MageBuilder();
+builder.SetName("菜鸟法师")
+.SetProfession(new Mage())
+.AddWeapon(new Staff())
+.AddWeapon(new Buckler())
+.AddArmor(new Hood())
+.AddArmor(new Leather())
+.AddArmor(new Belt());
+
+var character1 = builder.Build();
+builder.SetName("精英法师").AddStrength(100).AddIntelligence(100);
+var character2 = builder.Build();
+```
