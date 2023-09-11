@@ -28,6 +28,7 @@ const config = {
         routeBasePath: 'other',
         sidebarPath: require.resolve('./sidebarsOther.js'),
       }),
+
     ]
   ],
   presets: [
@@ -53,6 +54,21 @@ const config = {
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
+      }),
+    ]
+  ],
+  themes: [
+    [
+      "@easyops-cn/docusaurus-search-local",
+      /** @type {import("@easyops-cn/docusaurus-search-local").PluginOptions} */
+      ({
+        hashed: true,
+        language: ["en", "zh"],
+        highlightSearchTermsOnTargetPage: true,
+        explicitSearchResultPath: true,
+        indexPages: true,
+        indexBlog: true,
+        indexDocs: true,
       }),
     ]
   ],
