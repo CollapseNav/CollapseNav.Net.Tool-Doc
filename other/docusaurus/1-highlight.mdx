@@ -1,0 +1,162 @@
+---
+title: 代码高亮
+sidebar_position: 2
+---
+
+在默认的模板中, 部分语言的代码无法高亮, 比如我常用的 `csharp`, 就没有办法在代码块中高亮展示
+
+```
+for(var i = 0; i < 100; i++)
+{
+    Console.WriteLine(i);
+}
+```
+
+此时就需要修改项目配置使其支持`csharp`的高亮, 其他一些默认不支持的语言也可以使用相同的方式尝试获取对应的支持
+
+打开 `docusaurus.config.js` 文件, 在 `config.themeConfig.prism` 中添加一行 `additionalLanguages: ['csharp']`, 指定需要高亮的语言为`csharp`
+
+```ts
+const config = {
+    title: '......',
+    ......
+    themeConfig:
+        /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
+        ({
+            navbar: {
+                ......
+            },
+            footer: {
+                ......
+            },
+            prism: {
+                theme: lightCodeTheme,
+                darkTheme: darkCodeTheme,
+                // highlight-next-line
+                additionalLanguages: ['csharp'],
+            },
+        }),
+}
+```
+
+这一行添加之后还无法正常显示高亮, 需要执行以下的命令
+
+```shell
+yarn swizzle @docusaurus/theme-classic prism-include-languages
+```
+
+如果是npm
+
+```shell
+npm run swizzle @docusaurus/theme-classic prism-include-languages
+```
+
+在之后出现的选项中选择 `Eject`, 执行完成之后重启文档项目即可
+
+然后之前不支持的`csharp`代码就能有高亮了
+
+```csharp
+for(var i = 0; i < 100; i++)
+{
+    Console.WriteLine(i);
+}
+```
+
+
+## 高亮具体行
+
+有的时候我们需要高亮代码块中的某一行, 比如高亮第三行代码
+
+```csharp {3}
+for(var i = 0; i < 100; i++)
+{
+    Console.WriteLine(i);
+}
+```
+
+在这儿推荐两种方式
+
+### 使用注释
+
+第一种是写注释, 在需要高亮的行上面添加 `// highlight-next-line`
+
+```
+    ```csharp
+    for(var i = 0; i < 100; i++)
+    {
+        // highlight-next-line
+        Console.WriteLine(i);
+    }
+    ```
+```
+
+```csharp
+for(var i = 0; i < 100; i++)
+{
+    // highlight-next-line
+    Console.WriteLine(i);
+}
+```
+
+如果需要高亮多行, 可以使用 `// highlight-start` 和 `// highlight-end`
+
+```
+    ```csharp
+    for(var i = 0; i < 100; i++)
+    // highlight-start
+    {
+        Console.WriteLine(i);
+    }
+    // highlight-end
+    ```
+```
+
+```csharp
+for(var i = 0; i < 100; i++)
+// highlight-start
+{
+    Console.WriteLine(i);
+}
+// highlight-end
+```
+
+## metadata
+
+第二种是使用写在代码块外围的 metadata, 如果是单行的高亮, 可以使用如下写法
+
+```
+    ```csharp {3}
+    for(var i = 0; i < 100; i++)
+    {
+        Console.WriteLine(i);
+    }
+    ```
+```
+
+```csharp {3}
+for(var i = 0; i < 100; i++)
+{
+    Console.WriteLine(i);
+}
+```
+
+多行如下
+
+```
+    ```csharp {2-4}
+    for(var i = 0; i < 100; i++)
+    {
+        Console.WriteLine(i);
+    }
+    ```
+```
+
+```csharp {2-4}
+for(var i = 0; i < 100; i++)
+{
+    Console.WriteLine(i);
+}
+```
+
+不太推荐这种写法, 因为在对代码块中的内容进行修改时, 这种方案需要重新去数行数, 代码量较少时可能不太要紧, 但若是多了, 这样数就比较麻烦了, 不如直接使用上面的注释法
+

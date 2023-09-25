@@ -104,6 +104,12 @@ const config = {
             position: 'left',
             activeBaseRegex: `/other/markdown/`,
           },
+          {
+            to: '/other/docusaurus/',
+            label: 'docusaurus',
+            position: 'left',
+            activeBaseRegex: `/other/docusaurus/`,
+          },
           { to: '/blog', label: 'Blog', position: 'left' },
           {
             href: 'https://github.com/CollapseNav/Collapsenav.Net.Tool',
@@ -147,12 +153,26 @@ const config = {
             ],
           },
         ],
-        // copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} CollapseNav, Inc. Built with Docusaurus.`,
       },
       prism: {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
         additionalLanguages: ['csharp'],
+        magicComments: [
+          {
+            className: 'theme-code-block-highlighted-line',
+            line: 'highlight-next-line',
+            block: { start: 'highlight-start', end: 'highlight-end' },
+          },
+          {
+            className: 'code-error-line',
+            line: 'error-next-line',
+            block: {
+              start: 'error-start', end: 'error-end'
+            }
+          }
+        ]
       },
     }),
 };
