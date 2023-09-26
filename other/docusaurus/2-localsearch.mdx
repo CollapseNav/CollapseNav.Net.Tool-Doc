@@ -1,0 +1,46 @@
+---
+title: 本地搜索
+sidebar_position: 2
+---
+
+有的时候我们将文档分门别类写好了, 但是由于各种层级目录的原因, 找起来会比较麻烦, 这个时候就可以尝试引入搜索功能, 优化文档的使用体验
+
+docusaurus 有在线文档和本地文档两种插件, 这里介绍一下 `@easyops-cn/docusaurus-search-local` 本地文档如何使用
+
+首先执行以下命令添加包
+
+```shell
+yarn add @easyops-cn/docusaurus-search-local
+```
+
+npm命令如下
+
+```shell
+npm install --save @easyops-cn/docusaurus-search-local
+```
+
+将包添加完成之后修改 `docusaurus.config.js` 文件配置
+
+```js
+const config = {
+  themes: [
+    [
+      "@easyops-cn/docusaurus-search-local",
+      /** @type {import("@easyops-cn/docusaurus-search-local").PluginOptions} */
+      ({
+        hashed: true,
+        language: ["en", "zh"],
+        highlightSearchTermsOnTargetPage: true,
+        explicitSearchResultPath: true,
+        indexPages: true,
+        indexBlog: true,
+        indexDocs: true,
+      }),
+    ]
+  ],
+}
+```
+
+默认的config中没有themes对象, 添加一个即可
+
+这个本地搜索功能只有在打包发布之后才可以正常使用, 打包时会自动生成索引
