@@ -1,0 +1,52 @@
+---
+title: Benchmark
+sidebar_position: 0
+---
+
+有些时候我们实现了某个功能, 但是仅仅通过有限的几次调用无法知道这个功能的执行效率以及资源占用情况, 此时就可以使用 **Benchmark** 对这个功能进行基准测试
+
+在 **dotnet** 中主要使用 [BenchmarkDotNet](https://benchmarkdotnet.org/index.html)
+
+![benchmarkdotnet](https://raw.githubusercontent.com/dotnet/BenchmarkDotNet/ec962b0bd6854c991d7a3ebd77037579165acb36/docs/logo/logo-wide.png)
+
+**BenchmarkDotNet** 是一个.NET的基准测试框架, 主要用于测量.NET程序的性能
+
+它可以帮助开发者编写基准测试, 并自动运行这些测试, 生成详细的基准报告
+
+**BenchmarkDotNet** 的主要功能包括:
+* 简化基准测试的编写, 通过属性来标记要测试的方法
+* 支持多种基准测试模式, 如平均时间、内存分配等
+* 自动进行基准测试的运行和统计
+* 生成详细的基准报告, 包括表格、图形等
+* 支持基准结果的持久化, 可以比较不同版本的性能
+* 丰富的配置选项, 可以自定义基准测试的细节
+
+一般我们在文章中看到的基准测试都是用这个框架做的
+
+## 例子
+
+测试dotnet中的 `IsNullOrEmpty` 和 `IsNullOrWhiteSpace`, 具体代码如下
+
+```csharp
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
+BenchmarkRunner.Run(typeof(Test));
+public class Test
+{
+    [Benchmark] public void TestEmpty() => string.IsNullOrEmpty("");
+    [Benchmark] public void TestWhiteSpace() => string.IsNullOrWhiteSpace("");
+}
+```
+
+写好基准测试的例子后需要在使用命令执行, 注意必须要在 `Release` 模式下运行
+
+```shell
+dotnet run -c Release
+```
+
+耐心等待执行完成, 期间输出的东西都不需要细看, 直接看最后生成的表格
+
+| Method         | Mean      | Error     | StdDev    |
+|:---------------|----------:|----------:|----------:|
+| TestEmpty      | 0.0121 ns | 0.0123 ns | 0.0102 ns |
+| TestWhiteSpace | 1.7137 ns | 0.0306 ns | 0.0255 ns |
