@@ -1,0 +1,77 @@
+---
+title: 对比不同运行时
+sidebar_position: 3
+---
+
+微软整天说dotnet的新版本比旧版本快了很多, 每次更新都说有性能提升, 有各种各样的调用优化, 为了验证微软是不是瞎说, 我们可以对比不同的运行时
+
+首先需要修改项目文件, 将原来的单运行时换成多运行时
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    //highlight-next-line
+    <TargetFrameworks>net6.0;net7.0;</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.9"/>
+  </ItemGroup>
+</Project>
+```
+
+这边选择对比 `net6.0` 和 `net7.0`
+
+然后修改`Test`类, 添加特性`[SimpleJob]`
+
+```csharp
+//highlight-start
+[SimpleJob(RuntimeMoniker.Net70)]
+[SimpleJob(RuntimeMoniker.Net60, baseline: true)]
+//highlight-end
+public class Test
+{
+    public int Count = 100;
+    [Benchmark(Baseline = true)]
+    public void TestEmpty()
+    {
+        for (var i = 0; i < Count; i++)
+            string.IsNullOrEmpty("");
+    }
+    [Benchmark]
+    public void TestWhiteSpace()
+    {
+        for (var i = 0; i < Count; i++)
+            string.IsNullOrWhiteSpace("");
+    }
+}
+```
+
+`RuntimeMoniker.Net70` 和 `RuntimeMoniker.Net60` 分别代表 `net7.0` 和 `net6.0`
+
+`baseline: true` 表示将 `net6.0` 作为基准
+
+此时的测试基准是 `net6.0` 中的 `TestEmpty` 方法
+
+然后需要运行命令, 不过由于支持了多运行时, 所以启动时的命令也要稍作修改, 指定一个运行时 
+
+```shell
+dotnet run -c Release --framework net6.0
+```
+
+至于具体指定哪一个, 对结果不会有太大影响
+
+测试完成结果如下
+
+| Method         | Job      | Runtime  | Mean      | Error    | StdDev   | Ratio | RatioSD |
+|--------------- |--------- |--------- |----------:|---------:|---------:|------:|--------:|
+| TestEmpty      | .NET 6.0 | .NET 6.0 |  29.64 ns | 0.356 ns | 0.333 ns |  1.00 |    0.00 |
+| TestWhiteSpace | .NET 6.0 | .NET 6.0 | 212.49 ns | 3.012 ns | 2.817 ns |  7.17 |    0.13 |
+| TestEmpty      | .NET 7.0 | .NET 7.0 |  29.60 ns | 0.163 ns | 0.136 ns |  1.00 |    0.01 |
+| TestWhiteSpace | .NET 7.0 | .NET 7.0 |  29.47 ns | 0.345 ns | 0.306 ns |  0.99 |    0.01 |
+
+可以看到在`net7.0`中已经对`string.IsNullOrWhiteSpace`进行了优化
+
+

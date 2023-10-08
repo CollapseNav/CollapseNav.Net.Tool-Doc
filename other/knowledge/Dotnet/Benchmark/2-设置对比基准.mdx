@@ -1,0 +1,52 @@
+---
+title: 设置对比基准
+sidebar_position: 2
+---
+
+很多时候我们对比的目的非常简单, 就是看看两个方法哪个快哪个慢
+
+上一个例子运行后得到的结果如下:
+
+| Method         | Mean      | Error     | StdDev    |
+|:---------------|----------:|----------:|----------:|
+| TestEmpty      | 0.0121 ns | 0.0123 ns | 0.0102 ns |
+| TestWhiteSpace | 1.7137 ns | 0.0306 ns | 0.0255 ns |
+
+从结果来说, 我知道使用 `string.IsNullOrEmpty` 比 `string.IsNullOrWhiteSpace` 在判断空字符串的时候快很多, 但是具体快几倍还需要我自己计算
+
+此时就可以将 `TestEmpty` 方法设置为基准baseline, 在生成的结果中添加新的列项
+
+```csharp
+public class Test
+{
+    public int Count = 100;
+    //highlight-next-line
+    [Benchmark(Baseline = true)]
+    public void TestEmpty()
+    {
+        for (var i = 0; i < Count; i++)
+            string.IsNullOrEmpty("");
+    }
+    [Benchmark]
+    public void TestWhiteSpace()
+    {
+        for (var i = 0; i < Count; i++)
+            string.IsNullOrWhiteSpace("");
+    }
+}
+```
+
+执行命令
+
+```shell
+dotnet run -c Release
+```
+
+得出在 `net6.0` 下的100次执行结果对比如下
+
+| Method         | Mean      | Error    | StdDev   | Ratio | RatioSD |
+|--------------- |----------:|---------:|---------:|------:|--------:|
+| TestEmpty      |  29.58 ns | 0.259 ns | 0.242 ns |  1.00 |    0.00 |
+| TestWhiteSpace | 229.50 ns | 1.680 ns | 1.403 ns |  7.75 |    0.08 |
+
+100次执行, `string.IsNullOrWhiteSpace`的耗时是`string.IsNullOrEmpty`的7.75倍
