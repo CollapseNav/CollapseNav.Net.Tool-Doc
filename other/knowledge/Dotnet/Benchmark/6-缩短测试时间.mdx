@@ -1,0 +1,80 @@
+---
+title: 缩短测试时间
+sidebar_position: 6
+---
+
+一般来说多运行时多方法的基准测试会消耗很长时间, 但是在测试结果波动较大的时候会追加测试直到稳定, 这可能会阻塞整个测试流程
+
+运行过程中能看到类似如下的日志记录
+
+```
+OverheadJitting  1: 1 op, 177900.00 ns, 177.9000 us/op
+WorkloadJitting  1: 1 op, 163400.00 ns, 163.4000 us/op
+
+OverheadJitting  2: 16 op, 143000.00 ns, 8.9375 us/op
+WorkloadJitting  2: 16 op, 171800.00 ns, 10.7375 us/op
+
+WorkloadPilot    1: 16 op, 3500.00 ns, 218.7500 ns/op
+......
+WorkloadPilot   22: 33554432 op, 919606300.00 ns, 27.4064 ns/op
+
+OverheadWarmup   1: 33554432 op, 55109300.00 ns, 1.6424 ns/op
+......
+OverheadWarmup  10: 33554432 op, 42691100.00 ns, 1.2723 ns/op
+
+OverheadActual   1: 33554432 op, 41977500.00 ns, 1.2510 ns/op
+......
+OverheadActual  15: 33554432 op, 41082900.00 ns, 1.2244 ns/op
+
+WorkloadWarmup   1: 33554432 op, 920830600.00 ns, 27.4429 ns/op
+......
+WorkloadWarmup   7: 33554432 op, 929946600.00 ns, 27.7146 ns/op
+
+// BeforeActualRun
+WorkloadActual   1: 33554432 op, 922586700.00 ns, 27.4952 ns/op
+......
+WorkloadActual  15: 33554432 op, 919259900.00 ns, 27.3961 ns/op
+
+// AfterActualRun
+WorkloadResult   1: 33554432 op, 882615000.00 ns, 26.3040 ns/op
+......
+WorkloadResult  15: 33554432 op, 879288200.00 ns, 26.2048 ns/op
+```
+
+我们可以通过设置 `SimpleJob` 的参数添加新的特性减少我们等待的时间
+
+* 每两次测试之间会有个等待时间, 默认值是0.5s, 使用`[IterationTime]`可以设置这个时间
+* 在正式开始之前会先进行 warmup, 设置 `warmupCount` 可以限制次数
+* 正式开始测试的轮次是不固定的, 但是可以使用 `iterationCount` 参数固定
+
+所以通过以上三点可以将代码修改为下面这样
+
+```csharp
+//highlight-start
+[IterationTime(200)]
+[SimpleJob(RuntimeMoniker.Net70, warmupCount: 5, iterationCount: 10)]
+[SimpleJob(RuntimeMoniker.Net60, warmupCount: 5, iterationCount: 10, baseline: true)]
+//highlight-end
+public class Test
+{
+    public int Count = 100;
+    [Benchmark(Baseline = true)]
+    public void TestEmpty()
+    {
+        for (var i = 0; i < Count; i++)
+            string.IsNullOrEmpty("");
+    }
+    [Benchmark]
+    public void TestWhiteSpace()
+    {
+        for (var i = 0; i < Count; i++)
+            string.IsNullOrWhiteSpace("");
+    }
+}
+```
+
+修改完成之后的执行时间约为24s
+
+而在之前需要大约1m45s
+
+缩短测试时间只能快速得到一个大致的结果, 但是并不严谨, 所以只建议在一些不需要非常准确的数据时使用, 比如只需要粗略评估大致优劣的时候
