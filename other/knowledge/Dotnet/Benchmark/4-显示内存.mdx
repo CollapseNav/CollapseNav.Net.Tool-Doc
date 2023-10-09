@@ -1,0 +1,55 @@
+---
+title: 显示内存
+sidebar_position: 4
+---
+
+在基准测试中, 除了运行耗时之外, 使用内存也是一项比较重要的指标, 下面介绍一下如何在最终的结果中展示内存方面的使用情况
+
+```csharp
+// 由于现在需要展示内存方面的指标, 原来的字符串判空由于使用内存较少, 不适合用来做测试
+// 因此定义了以下拥有相同属性的结构体和类
+public struct SModel
+{
+    public int Prop1 { get; set; }
+    public int Prop2 { get; set; }
+    public int Prop3 { get; set; }
+}
+public class CModel
+{
+    public int Prop1 { get; set; }
+    public int Prop2 { get; set; }
+    public int Prop3 { get; set; }
+}
+[SimpleJob(RuntimeMoniker.Net70)]
+[SimpleJob(RuntimeMoniker.Net60, baseline: true)]
+//highlight-start
+[MemoryDiagnoser]
+//highlight-end
+public class Test
+{
+    public int Count = 1000;
+    [Benchmark(Baseline = true)]
+    public void TestStruct()
+    {
+        var data = new List<SModel>();
+        for (var i = 0; i < Count; i++)
+            data.Add(new SModel());
+    }
+    [Benchmark]
+    public void TestClass()
+    {
+        var data = new List<CModel>();
+        for (var i = 0; i < Count; i++)
+            data.Add(new CModel());
+    }
+}
+```
+
+给`Test`类打上`[MemoryDiagnoser]`特性, 最终生成的表格中就会出现内存方面的数据
+
+| Method     | Runtime  | Mean     | Error     | StdDev    | Ratio | RatioSD | Gen0    | Allocated | Alloc Ratio |
+|----------- |--------- |---------:|----------:|----------:|------:|--------:|--------:|----------:|------------:|
+| TestStruct | .NET 6.0 | 3.284 us | 0.0831 us | 0.0549 us |  1.00 |    0.00 | 11.8054 |   24.2 KB |        1.00 |
+| TestClass  | .NET 6.0 | 7.945 us | 0.2639 us | 0.1380 us |  2.43 |    0.07 | 23.2011 |  47.46 KB |        1.96 |
+| TestStruct | .NET 7.0 | 3.227 us | 0.0690 us | 0.0457 us |  0.98 |    0.02 | 11.7973 |   24.2 KB |        1.00 |
+| TestClass  | .NET 7.0 | 7.100 us | 0.6302 us | 0.4168 us |  2.16 |    0.11 | 23.2008 |  47.46 KB |        1.96 |
