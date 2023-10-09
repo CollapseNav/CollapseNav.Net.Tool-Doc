@@ -1,0 +1,53 @@
+---
+title: 可变参数
+sidebar_position: 5
+---
+
+之前的字符串判空测试中, 循环次数为固定的100次, 如果我想要测试1000次或者10000次, 就必须修改代码然后重新运行项目, 这样的操作是非常不方便的
+
+因此可以标记运行中所使用的参数, 提前进行配置
+
+```csharp
+[SimpleJob(RuntimeMoniker.Net70)]
+[SimpleJob(RuntimeMoniker.Net60, baseline: true)]
+public class Test
+{
+//highlight-start
+    [Params(1, 100, 10000)]
+    public int Count;
+//highlight-end
+    [Benchmark(Baseline = true)]
+    public void TestEmpty()
+    {
+        for (var i = 0; i < Count; i++)
+            string.IsNullOrEmpty("");
+    }
+    [Benchmark]
+    public void TestWhiteSpace()
+    {
+        for (var i = 0; i < Count; i++)
+            string.IsNullOrWhiteSpace("");
+    }
+}
+```
+
+只需要将`[Params]`特性加到 `Count` 属性上, 然后传入需要循环的次数即可
+
+但是需要注意的是, 传入的参数越多, 测试所需的时间越长
+
+| Method         | Runtime  | Count | Mean           | Error       | StdDev      | Median         | Ratio | RatioSD |
+|--------------- |--------- |------ |---------------:|------------:|------------:|---------------:|------:|--------:|
+| TestEmpty      | .NET 6.0 | 1     |      0.0714 ns |   0.1231 ns |   0.0814 ns |      0.0349 ns |  1.00 |    0.00 |
+| TestWhiteSpace | .NET 6.0 | 1     |      1.9495 ns |   0.0927 ns |   0.0485 ns |      1.9450 ns | 67.38 |   59.38 |
+| TestEmpty      | .NET 7.0 | 1     |      0.0153 ns |   0.0305 ns |   0.0181 ns |      0.0069 ns |  1.71 |    3.61 |
+| TestWhiteSpace | .NET 7.0 | 1     |      0.0112 ns |   0.0147 ns |   0.0098 ns |      0.0084 ns |  1.71 |    4.43 |
+|                |          |       |                |             |             |                |       |         |
+| TestEmpty      | .NET 6.0 | 100   |     29.3640 ns |   0.4495 ns |   0.2351 ns |     29.3970 ns |  1.00 |    0.00 |
+| TestWhiteSpace | .NET 6.0 | 100   |    228.6230 ns |   2.2380 ns |   1.3318 ns |    228.1453 ns |  7.78 |    0.08 |
+| TestEmpty      | .NET 7.0 | 100   |     28.8075 ns |   0.1864 ns |   0.1233 ns |     28.8345 ns |  0.98 |    0.01 |
+| TestWhiteSpace | .NET 7.0 | 100   |     28.7252 ns |   0.3800 ns |   0.2261 ns |     28.6167 ns |  0.98 |    0.01 |
+|                |          |       |                |             |             |                |       |         |
+| TestEmpty      | .NET 6.0 | 10000 |  2,397.6138 ns |  41.6010 ns |  24.7561 ns |  2,394.6654 ns |  1.00 |    0.00 |
+| TestWhiteSpace | .NET 6.0 | 10000 | 22,039.1218 ns | 278.0161 ns | 165.4429 ns | 21,982.1578 ns |  9.19 |    0.13 |
+| TestEmpty      | .NET 7.0 | 10000 |  2,422.1938 ns |  87.4866 ns |  57.8670 ns |  2,412.8422 ns |  1.01 |    0.03 |
+| TestWhiteSpace | .NET 7.0 | 10000 |  2,387.8995 ns |  32.0373 ns |  21.1907 ns |  2,381.0133 ns |  0.99 |    0.01 |
