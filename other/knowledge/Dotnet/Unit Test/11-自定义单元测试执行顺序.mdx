@@ -5,7 +5,7 @@ sidebar_position: 11
 
 有的时候我们会对程序进行单元测试, 为了测试的效果以及后期的维护, 我一般会将各个测试拆开, 根据需要测试的类分到各个类型中, 不过在实际操作的时候就出现了一些意想不到的问题, 各个测试的执行是乱序的, 按照我自己写测试的习惯, 假如我需要测试新写的增删改查的功能, 我会将增删改查分开测试, 会按照 新增-->查询-->修改-->删除 这样的顺序编写, 在我的预想中新增操作应当是最先执行的, 但是在实际的运行过程中完全不是这样, 随机的顺序对这样的测试会有巨大的影响
 
-所以就需要控制测试的执行顺序, 下面介绍如何实现
+所以就需要控制测试的执行顺序
 
 ## 为测试用例排序
 
@@ -33,5 +33,110 @@ public class UserInfoTest
 }
 ```
 
-上面就是增删查改的测试用例, 我需要他们按照上面的顺序执行
+上面就是增删查改的测试用例, 尽管在写的时候看起来是按照我所希望的那样进行排序的, 但是在实际的执行过程却有可能是完全乱序的, 而我需要他们按照上面的顺序执行
+
+#### 实现ITestCaseOrderer
+
+Xunit 中有一个 `TestCaseOrdererAttribute`, 加在测试类上时可以对测试类中包含的测试用例进行排序
+
+但若是需要让 `TestCaseOrdererAttribute` 起效, 我们还需要实现一个接口 `ITestCaseOrderer`
+
+```csharp
+// highlight-next-line
+public class TestOrders : ITestCaseOrderer
+{
+    public IEnumerable<TTestCase> OrderTestCases<TTestCase>(IEnumerable<TTestCase> testCases) where TTestCase : ITestCase
+    {
+        var result = testCases.ToList();
+        return result;
+    }
+}
+```
+
+通过实现 `ITestCaseOrderer` 我们可以获取到测试用例, 之后只需要将测试用例重新进行排序, 排序成预期中需要的顺序即可
+
+最简单的就是根据名字来进行排序, 此时只需要使用 `result.OrderBy(item => item.DisplayName)` 就差不多可以了
+
+但是为了严谨以及后续的可维护性, 最好在做一个新的 `Attribute` 对需要排序的测试用例进行标记
+
+#### 新建OrderAttribute
+
+```csharp
+[AttributeUsage(AttributeTargets.Method)]
+public class OrderAttribute : Attribute
+{
+    public int Sort { get; set; }
+    public OrderAttribute(int sort)
+    {
+        this.Sort = sort;
+    }
+}
+```
+
+`OrderAttribute` 的构成非常简单, 其中只包含一个 `Sort` 用来进行排序
+
+#### 完善TestOrders的实现
+
+```csharp
+public class TestOrders : ITestCaseOrderer
+{
+    public IEnumerable<TTestCase> OrderTestCases<TTestCase>(IEnumerable<TTestCase> testCases) where TTestCase : ITestCase
+    {
+        var typeName = typeof(OrderAttribute).AssemblyQualifiedName;
+        var result = testCases.ToList();
+        result.Sort((x, y) =>
+        {
+            var xOrder = x.TestMethod.Method.GetCustomAttributes(typeName)?.FirstOrDefault();
+            if (xOrder == null)
+            {
+                return 0;
+            }
+            var yOrder = y.TestMethod.Method.GetCustomAttributes(typeName)?.FirstOrDefault();
+            if (yOrder == null)
+            {
+                return 0;
+            }
+            var sortX = xOrder.GetNamedArgument<int>("Sort");
+            var sortY = yOrder.GetNamedArgument<int>("Sort");
+            return sortX - sortY;
+        });
+        return result;
+    }
+}
+```
+
+完善 `TestOrders` 的实现, 使得测试用例可以按照顺序进行排序
+
+## 测试用例打标
+
+```csharp
+// highlight-next-line
+[TestCaseOrderer("TestOrders这个类型所在的namespace.TestOrders", "TestOrders这个类型所在的namespace")]
+public class UserInfoTest
+{
+    [Fact, Order(0)]
+    public void AddTest()
+    {
+    }
+    [Fact, Order(1)]
+    public void ReadTest()
+    {
+    }
+    [Fact, Order(2)]
+    public void UpdateTest()
+    {
+    }
+    [Fact, Order(3)]
+    public void DeleteTest()
+    {
+    }
+}
+```
+
+`TestCaseOrdererAttribute` 接收两个参数, 一个是可以用来确定之前实现的 `TestOrders` 的完整命名空间, 第二个是 `TestOrders` 所在的命名空间
+
+这两个参数主要的功能就是确定 `TestOrders` 的位置, Xunit会根据这两个参数找到 `TestOrders` 并且调用排序的方法
+
+然后在需要进行排序的测试用例上使用 `[Order]` 打标, 传入自定义的排序, 然后在我们使用 `dotnet test` 就会按照传入的排序执行测试用例了
+
 
