@@ -1,0 +1,96 @@
+---
+title: 将html转换为图像
+sidebar_position: 11
+---
+
+前段时间碰到了一个需求, 需要后端动态生成图片, 初期还打算用gdi什么的手动撸, 但是由于不太会用所以效率太低, 所以考虑通过 Html 转为 Image
+
+## PuppeteerSharp
+
+PuppeteerSharp使 .NET 开发人员能够以编程方式控制开源的谷歌浏览器。Puppeteer API 的便利性是能够使用浏览器的无头特性，而不需要把浏览器显示出来，以此提高性能。
+
+## 代码
+
+```csharp
+[ApiController]
+[Route("[controller]")]
+public class Html2ImgController : ControllerBase
+{
+    [HttpGet]
+    public async Task<IActionResult> REAsync()
+    {
+        string html =
+        """
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        tr {
+            border: 1px solid black;
+        }
+
+        td {
+            border: 1px solid black;
+        }
+
+        table {
+            background-color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <table>
+        <tr>
+            <td>0</td>
+            <td>1</td>
+            <td>2</td>
+            <td>3</td>
+        </tr>
+        <tr>
+            <td>00</td>
+            <td>11</td>
+            <td>22</td>
+            <td>33</td>
+        </tr>
+        <tr>
+            <td>0000</td>
+            <td>1111</td>
+            <td>2222</td>
+            <td>3333</td>
+        </tr>
+        <tr>
+            <td>000000</td>
+            <td>111111</td>
+            <td>222222</td>
+            <td>333333</td>
+        </tr>
+    </table>
+</body>
+
+</html>
+""";
+        // highlight-start
+        await new BrowserFetcher().DownloadAsync();
+        var option = new LaunchOptions();
+        option.DefaultViewport.Width = 400;
+        option.DefaultViewport.Height = 400;
+        await using var browser = await Puppeteer.LaunchAsync(option);
+        await using var page = await browser.NewPageAsync();
+        await page.SetContentAsync(html);
+        // highlight-end
+        var ms = await page.ScreenshotStreamAsync();
+        var range = Request.Headers["Range"].ToString();
+
+        Response.Headers.Add("Content-Disposition", "attachment; filename=" + HttpUtility.UrlEncode("test.png", Encoding.UTF8));
+        Response.Headers.Add("Content-Type", "png");
+        Response.ContentLength = ms.Length;
+        Response.Headers.Add("Accept-Ranges", "bytes");
+        Response.Headers.Add("Content-Range", ((string.IsNullOrEmpty(range.ToString()) ? 0 : int.Parse(range)) + (ms.Length - 1)).ToString());
+        return new FileStreamResult(ms, "application/octet-stream");
+    }
+}
+```
