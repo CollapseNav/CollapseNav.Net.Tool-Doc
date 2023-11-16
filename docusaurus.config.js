@@ -99,12 +99,6 @@ const config = {
             activeBaseRegex: `/other/knowledge/`,
           },
           {
-            to: '/other/markdown/env',
-            label: 'MarkDown介绍',
-            position: 'left',
-            activeBaseRegex: `/other/markdown/`,
-          },
-          {
             to: '/other/docusaurus/',
             label: 'docusaurus',
             position: 'left',
