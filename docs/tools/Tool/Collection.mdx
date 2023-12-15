@@ -7,7 +7,12 @@ sidebar_position: 1
 
 ### Empty(集合判空)
 
+:::note
+可以对集合进行是否为空的判断, 当集合为 `null` 或者其中的元素为空时返回 `true`
+:::
+
 ```csharp
+using Collapsenav.Net.Tool;
 string[] nullArray = null;
 List<string> emptyList = new();
 int[] notEmptyArray = new[] { 1, 2, 3, 4 };
@@ -18,15 +23,14 @@ notEmptyArray.NotEmpty(); // true
 notEmptyArray.IsEmpty(); // false
 ```
 
-:::tip
-集合为 `null` 或者元素为空，结果都为 `True`
-
-无需再对集合做空判断
-:::
-
 ### AllContain(A是否包含B)
 
+:::note
+用于判断 A 集合是完全包含 B 集合, 当 B 被完全包含在 A 中时, 返回 `true`
+:::
+
 ```csharp
+using Collapsenav.Net.Tool;
 string[] strList = { "1", "2", "3", "4", "5", "6" };
 strList.AllContain(new[] { "2", "6" }); // True
 strList.AllContain("2", "8", "10", "11", "20"); // False
@@ -36,8 +40,6 @@ strList.AllContain((x, y) => x == y, "2", "8", "10", "11", "20"); // False
 ```
 
 :::tip
-A 集合 **全部** 包含了 B 集合中的元素时为 `True`
-
 可传入委托进行自定义判断
 :::
 
