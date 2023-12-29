@@ -1,8 +1,7 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const lightCodeTheme = require('prism-react-renderer/themes/github');
-const darkCodeTheme = require('prism-react-renderer/themes/dracula');
+import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -15,16 +14,16 @@ const config = {
   favicon: 'img/favicon.ico',
   organizationName: 'CollapseNav', // Usually your GitHub org/user name.
   projectName: 'CollapseNav Docs', // Usually your repo name.
-  plugins: ['mdx-mermaid',
+  markdown: {
+    mermaid: true
+  },
+  plugins: [
     [
       'content-docs',
       /** @type {import('@docusaurus/plugin-content-docs').Options} */
       ({
         id: 'other',
         path: 'other',
-        remarkPlugins: [[require('mdx-mermaid'), {
-          theme: { light: 'default', dark: 'dark' }
-        }]],
         routeBasePath: 'other',
         sidebarPath: require.resolve('./sidebarsOther.js'),
       }),
@@ -38,18 +37,12 @@ const config = {
       ({
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          remarkPlugins: [require('mdx-mermaid')],
-          // Please change this to your repo.
-          // editUrl: 'https://github.com/CollapseNav/Collapsenav.Net.Tool',
         },
         blog: {
           // showReadingTime: true,
           postsPerPage: 'ALL',
           blogTitle: '我的博客',
           blogDescription: '兴趣使然做的博客',
-          remarkPlugins: [require('mdx-mermaid')],
-          // Please change this to your repo.
-          // editUrl: 'https://github.com/CollapseNav/Collapsenav.Net.Tool',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -57,10 +50,9 @@ const config = {
       }),
     ]
   ],
-  themes: [
+  themes: ['@docusaurus/theme-mermaid',
     [
       "@easyops-cn/docusaurus-search-local",
-      /** @type {import("@easyops-cn/docusaurus-search-local").PluginOptions} */
       ({
         hashed: true,
         language: ["en", "zh"],
@@ -122,6 +114,10 @@ const config = {
                 label: 'Repo',
                 href: 'https://github.com/CollapseNav/Collapsenav.Net.Tool',
               },
+              {
+                label: 'Docusaurus',
+                href: 'https://docusaurus.io/zh-CN/',
+              }
             ],
           },
           {
@@ -150,8 +146,8 @@ const config = {
         copyright: `Copyright © ${new Date().getFullYear()} CollapseNav, Inc. Built with Docusaurus.`,
       },
       prism: {
-        theme: lightCodeTheme,
-        darkTheme: darkCodeTheme,
+        theme: prismThemes.github,
+        darkTheme: prismThemes.dracula,
         additionalLanguages: ['csharp'],
         magicComments: [
           {
