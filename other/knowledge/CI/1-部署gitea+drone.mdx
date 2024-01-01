@@ -25,13 +25,13 @@ docker run -itd \
 
 支持 `MySQL,PostgreSQL,MSSQL,SQLite3` 三种数据库
 
-![gitea-db](/img/gitea/gitea-db.png)
+![gitea-db](/img/gitea/gitea-db.webp)
 
 为了方便, 我一般选择使用 `SQLite3`, 省的多部署一个数据库服务
 
 ### 第二步 确认服务器设置
 
-![gitea-service](/img/gitea/gitea-service.png)
+![gitea-service](/img/gitea/gitea-service.webp)
 
 只建议修改以下配置
 
@@ -42,7 +42,7 @@ docker run -itd \
 
 ### 第三步 可选设置
 
-![gitea-last](/img/gitea/gitea-last.png)
+![gitea-last](/img/gitea/gitea-last.webp)
 
 建议只填写一个 **管理员账号** 即可
 
@@ -50,15 +50,15 @@ docker run -itd \
 
 进入gitea之后点击右上角的用户,在下拉中选择**设置**
 
-![gitea-setting](/img/gitea/gitea-setting.png)
+![gitea-setting](/img/gitea/gitea-setting.webp)
 
 在打开后的页面点击**应用**tab页
 
-![gitea-yy](/img/gitea/gitea-yy.png)
+![gitea-yy](/img/gitea/gitea-yy.webp)
 
 然后填写最下方的 **管理 OAuth2 应用程序**
 
-![gitea-auth](/img/gitea/gitea-auth.png)
+![gitea-auth](/img/gitea/gitea-auth.webp)
 
 这里的应用名称可以随便填, 只是个标识
 
@@ -68,7 +68,7 @@ docker run -itd \
 
 这些填写好之后点击**创建应用**
 
-![gitea-copy](/img/gitea/gitea-copy.png)
+![gitea-copy](/img/gitea/gitea-copy.webp)
 
 之后会切换到新的页面, 注意要把其中的 `客户端ID` 和 `客户端密钥` 保存下来
 
@@ -142,13 +142,13 @@ docker run -itd \
 
 然后浏览器访问 [http://172.30.4.210:8081](http://172.30.4.210:8081)
 
-![drone-home](/img/gitea/drone-home.png)
+![drone-home](/img/gitea/drone-home.webp)
 
 各个版本的drone可能会有点不一样, 如果和截图差不多的, 可以直接点击图中的按钮
 
 如果不一样, 可以直接在浏览器中访问 [http://172.30.4.210:8081/login](http://172.30.4.210:8081/login)
 
-![drone-auth](/img/gitea/drone-auth.png)
+![drone-auth](/img/gitea/drone-auth.webp)
 
 如果已经登录过 gitea,则会直接尝试获取授权, 点击确认即可
 

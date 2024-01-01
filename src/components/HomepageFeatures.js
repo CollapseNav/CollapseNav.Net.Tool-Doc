@@ -5,7 +5,7 @@ import styles from './HomepageFeatures.module.css';
 const FeatureList = [
   {
     title: 'Collapsenav.Net.Tool',
-    Image: require('/img/tool.png').default,
+    Image: require('/img/tool.webp').default,
     description: (
       <>
         以扩展方法的形式封装了Collection,string,Stream,Hash等常用操作
@@ -16,7 +16,7 @@ const FeatureList = [
   },
   {
     title: 'Collapsenav.Net.Tool.Excel',
-    Image: require('/img/excel.png').default,
+    Image: require('/img/excel.webp').default,
     description: (
       <>
         基于EPPlus，NPOI和MiniExcel提供了导出导出功能

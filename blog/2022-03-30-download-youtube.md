@@ -357,11 +357,11 @@ window.onload = function () {
 
 复制上面的脚本, 然后点击浏览器中油猴脚本插件图标, 选择添加新脚本
 
-![open_tempermonkey](/img/open_tampermonkey.png)
+![open_tempermonkey](/img/open_tampermonkey.webp)
 
 然后用复制的脚本覆盖掉打开的页面中的脚本代码
 
-![copy_to_tempermonkey](/img/copy_to_tampermonkey.png)
+![copy_to_tempermonkey](/img/copy_to_tampermonkey.webp)
 
 复制粘贴完成之后按快捷键 `ctrl+s` 保存即可
 
@@ -371,13 +371,13 @@ window.onload = function () {
 
 然后在订阅按钮上方, 点赞按钮同一行的地方 **应当** 会出现一个下载按钮
 
-![download_btn](/img/youtube_download_btn.png)
+![download_btn](/img/youtube_download_btn.webp)
 
 如果没有, 那就刷新, 如果还没有, 那就多刷新几次, 如果确实还是没有, 有可能这套方案就寄了
 
 点击下载的按钮之后会出现一个如下的弹窗
 
-![download_dialog](/img/download_dialog.png)
+![download_dialog](/img/download_dialog.webp)
 
 默认选项的视频中会带音频, 如果有其他的需求也可以自己选择
 
