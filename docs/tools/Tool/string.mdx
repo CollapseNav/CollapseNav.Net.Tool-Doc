@@ -5,7 +5,11 @@ sidebar_position: 2
 
 # string
 
-### Null/Empty(判空)
+### Null/Empty
+
+:::note
+字符串判空
+:::
 
 ```csharp
 string empty = "";
@@ -24,11 +28,15 @@ whiteSpace.NotNull(); //False
 :::
 
 ```csharp
-empty.IsNull("233"); // "233"
-notEmpty.IsEmpty("233"); // "NotEmpty"
+empty.IsNull("233"); // 返回"233"
+notEmpty.IsEmpty("233"); // 返回"NotEmpty"
 ```
 
-### Add/AddIf(拼接)
+### Add/AddIf
+
+:::note
+拼接字符串
+:::
 
 ```csharp
 string str = string.Empty;
@@ -90,50 +98,38 @@ string strJoin = "233.233.233.233";
 strJoin.Join("@"); // "2@3@3@.@2@3@3@.@2@3@3@.@2@3@3"
 int[] intJoin = { 1, 2, 3 };
 intJoin.Join("@"); // "1@2@3"
-intJoin.Join("@", item => -item); // "-1@-2@-3"
 ```
 
 :::tip
 可通过委托指定 **Join** 拼接的内容
 :::
 
-### CanPing(ping测试)
+```csharp
+intJoin.Join("@", item => -item); // "-1@-2@-3"
+```
+
+### CanPing
+
+:::note
+测试网址字符串是否可以被ping通
+:::
 
 ```csharp
 string url = "https://www.bilibili.com/";
 url.CanPing(); // 如果联网了,应该为 True
 ```
 
-### PadLeftAndRight(填充)
+### PadLeftAndRight
+
+:::note
+字符串左右填充
+:::
 
 ```csharp
 int iValue = 233;
-double dValue = 2.33;
-long lValue = 23333;
-
-iValue.PadLeft(6); // "   233"
-dValue.PadLeft(6); // "  2.33"
-lValue.PadLeft(6); // " 23333"
-
 iValue.PadLeft(6, '-'); // "---233"
-dValue.PadLeft(6, '-'); // "--2.33"
-lValue.PadLeft(6, '-'); // "-23333"
-
 iValue.PadRight(6); // "233   "
-dValue.PadRight(6); // "2.33  "
-lValue.PadRight(6); // "23333 "
-
-iValue.PadRight(6, '-'); // "233---"
-dValue.PadRight(6, '-'); // "2.33--"
-lValue.PadRight(6, '-'); // "23333-"
-
-iValue.PadLeft(6, item => item + 1, '-'); // "---234"
-dValue.PadLeft(6, item => item + 1, '-'); // "--3.33"
-lValue.PadLeft(6, item => item + 1, '-'); // "-23334"
-
 iValue.PadRight(6, item => item + 1, '-'); // "234---"
-dValue.PadRight(6, item => item + 1, '-'); // "3.33--"
-lValue.PadRight(6, item => item + 1, '-'); // "23334-"
 ```
 
 ### StartsWith&&EndsWith
@@ -173,16 +169,16 @@ str.First(5); // "12345"
 str.Last(5); // "54321"
 ```
 
-### AutoMask(自动遮罩)
+### AutoMask
+
+:::note
+自动为字符串添加遮罩
+:::
 
 ```csharp
 var origin = "CollapseNav.Net.Tool";
 var masked = origin.AutoMask(); // Col*ool
 ```
-
-:::caution
-可用性可能不大高
-:::
 
 ### Base64
 
@@ -238,7 +234,11 @@ temp.HasContain(new[] { "ABc", "CD" }, ignoreCase: false); // True
 temp.HasContain(new[] { "ABcE", "cD" }, ignoreCase: false); // False
 ```
 
-### AddBegin&AddEnd(添加前缀后缀)
+### AddBegin&AddEnd
+
+:::note
+为字符串集合批量添加前缀后缀
+:::
 
 ```csharp
 string[] strs = new[] { "2", "3" };
