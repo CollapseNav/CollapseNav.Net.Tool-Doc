@@ -4,13 +4,21 @@ sidebar_position: 5
 ---
 # DateTime
 
-### ToTimestamp(DateTime转时间戳)
+### ToTimestamp
+
+:::note
+DateTime转时间戳
+:::
 
 ```csharp
 DateTime.Now.ToUniversalTime();
 ```
 
-### ToDateTime(时间戳转DateTime)
+### ToDateTime
+
+:::note
+时间戳转DateTime
+:::
 
 ```csharp
 now.ToTimestamp().ToDateTime();
@@ -20,6 +28,10 @@ now.ToTimestamp().ToDateTime();
 :::
 
 ### DefaultString
+
+:::note
+提供了一些简单的DateTime格式化字符串方法
+:::
 
 ```csharp
 DateTime date = new(2021, 11, 11, 11, 11, 11);

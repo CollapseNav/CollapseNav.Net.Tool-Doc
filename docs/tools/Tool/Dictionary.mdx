@@ -7,20 +7,25 @@ sidebar_position: 3
 
 ### AddOrUpdate(添加或更新)
 
+:::note
+字典的添加或更新, 当字典中存在相同的key时更新value
+
+支持传入 `KeyValuePair` 和 单独的 key 和 value
+:::
+
 ```csharp
 Dictionary<int, string> dict = new();
 dict
 .AddOrUpdate(new KeyValuePair<int, string>(1, "1"))
-.AddOrUpdate(new KeyValuePair<int, string>(1, "1"))
-.AddOrUpdate(1, "2");
-// 1 : "2"
+.AddOrUpdate(new KeyValuePair<int, string>(1, "1"));
+// dict[1]=="2"
 ```
 
-:::tip
-支持传入 `KeyValuePair` 和 单独的 key+value
-:::
-
 ### AddRange(添加多个)
+
+:::note
+向字典中批量添加元素
+:::
 
 ```csharp
 Dictionary<int, string> dict = new();
@@ -36,22 +41,22 @@ dict.AddRange(dict2);
 // 3 : "3"
 ```
 
-:::tip
-支持传入 `KeyValuePair` 集合
-:::
+### ToDictionary
 
-### ToDictionary(将集合转为字典)
+:::note
+将集合转为字典
+:::
 
 ```csharp
 string[] nums = new[] { "1", "2", "3", "4", "5" };
 IDictionary<int, string> dict = nums.ToDictionary(item => int.Parse(item));
 ```
 
-:::tip
-需要使用委托指定字典的 `Key` 值
-:::
+### GetAndRemove/Pop
 
-### GetAndRemove/Pop(获取并移除)
+:::note
+获取字典中的元素并移除
+:::
 
 ```csharp
 Dictionary<int, string> dict = new()
@@ -61,23 +66,19 @@ Dictionary<int, string> dict = new()
     { 3, "3" },
 };
 string value = dict.GetAndRemove(1);
+value = dict.Pop(1);
 ```
-:::tip
-实际上使用 Pop 也可以
 
-`dict.Pop(1)`
+### ToObj\<T\>
+
+:::note
+可以将字典转换为指定的对象
 :::
 
-### Deconstruct(解构)
-
 ```csharp
-Dictionary<int, string> dict = new()
-{
-    { 1, "1" },
-    { 2, "2" },
-    { 3, "3" },
+Dictionary<string, string> dict2 = new Dictionary<string, string>{
+    {"username","name"},
+    {"age","3"},
 };
-foreach (var (value, index) in dict.Deconstruct())
-    ;
+var userinfo = dict1.ToObj<UserInfo>();
 ```
-
