@@ -24,6 +24,7 @@ class Character{
     + SetWeapon(MagicWeapon)
 }
 class MagicWeapon{
+    + IMagic Magic
     + Attack()
     + UseMagic()
 }
@@ -62,3 +63,81 @@ MagicWeapon <|.. Sword
 MagicWeapon <|.. Dagger
 ```
 
+## 代码
+
+首先定义几个简单的魔法效果, 有 `火焰` `雷电` `冰霜`
+
+```csharp
+public interface IMagic
+{
+    int Damage { get; set; }
+}
+public class FireMagic : IMagic
+{
+    public int Damage { get; set; } = 10;
+}
+public class LightningMagic : IMagic
+{
+    public int Damage { get; set; } = 11;
+}
+public class IceMagic : IMagic
+{
+    public int Damage { get; set; } = 12;
+}
+```
+
+然后是几种不同的武器, `剑` `枪` `匕首`
+
+```csharp
+public abstract class MagicWeapon
+{
+    protected MagicWeapon(IMagic magic) => Magic = magic;
+    public IMagic Magic { get; }
+    public abstract void Attack();
+    public abstract IMagic UseMagic();
+}
+public class Dagger : MagicWeapon
+{
+    public Dagger(IMagic magic) : base(magic) { }
+    public override void Attack() => Console.WriteLine("Dagger");
+    public override IMagic UseMagic() => Magic;
+}
+public class Gun : MagicWeapon
+{
+    public Gun(IMagic magic) : base(magic) { }
+    public override void Attack() => Console.WriteLine("Gun");
+    public override IMagic UseMagic() => Magic;
+}
+public class Sword : MagicWeapon
+{
+    public Sword(IMagic magic) : base(magic) { }
+    public override void Attack() => Console.WriteLine("Sword");
+    public override IMagic UseMagic() => Magic;
+}
+```
+
+这些武器在构造函数中接收一个魔法效果, 从而组合出 `火焰剑` 或者 `火焰匕首` 这种效果
+
+即使添加了新的魔法效果或者武器, 也只需要添加相同数量的类
+
+然后定义一个角色去使用魔法武器
+
+```csharp
+public class Character
+{
+    private MagicWeapon weapon;
+    public Character(MagicWeapon weapon) => this.weapon = weapon;
+    public void Attack() => weapon.Attack();
+    public void UseMagic() => weapon.UseMagic();
+}
+```
+
+## 如何去使用
+
+```csharp
+Character character = new Character(new Gun(new IceMagic()));
+character.Attack();
+character.UseMagic();
+```
+
+如上就给一个角色装备了一把 `寒冰手枪`
