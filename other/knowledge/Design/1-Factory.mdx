@@ -31,16 +31,18 @@ sidebar_position: 1
 title: 角色工厂
 ---
 classDiagram
-Role<|--Warrior
-Role<|--Mage
-Role<|--Rogue
-RoleFactory<|--WarriorFactory
-RoleFactory<|--MageFactory
-RoleFactory<|--RogueFactory
-WarriorFactory..>Warrior
-MageFactory..>Mage
-RogueFactory..>Rogue
-RoleFactory..>Role
+RoleFactory <|-- WarriorFactory
+RoleFactory <|-- MageFactory
+RoleFactory <|-- RogueFactory
+WarriorFactory ..> Warrior
+MageFactory ..> Mage
+RogueFactory ..> Rogue
+
+RoleFactory ..> Role
+
+Warrior --|> Role
+Mage --|> Role
+Rogue --|> Role
 
 class Role{
     +string RoleName
