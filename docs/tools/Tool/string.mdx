@@ -246,3 +246,14 @@ strs.AddBegin("999"); // ["9992", "9993"]
 strs.AddEnd("111"); // ["9992111", "9993111"]
 ```
 
+### SplitAs
+
+:::note
+将字符串按照指定分隔符分割并且通过指定的规则转换
+:::
+
+```csharp
+var temp = "123,456";
+var nums = temp.SplitAs(str => int.Parse(str), ',');
+// nums[0] = 123, nums[1] = 456
+```
