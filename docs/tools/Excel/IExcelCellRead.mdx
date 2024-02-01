@@ -65,22 +65,6 @@ using IExcelCellRead reader = new EPPlusCellRead(filePath);
 using IExcelCellRead reader = new MiniCellRead(filePath);
 ```
 
-:::tip
-为了降低心智负担, `IExcelCellRead` 有静态方法 `GetCellRead`, 用以自动生成 `IExcelCellRead` 的实例
-
-5M 以上的自动使用 `MiniExcel` 作为实现, 其他时候随机使用 EPPlus 或 NPOI
-
-这部分的设计逻辑基本上和 `IExcelRead` 相同
-:::
-
-```csharp
-using IExcelCellRead reader = IExcelCellRead.GetCellRead(filePath);
-```
-
-:::caution
-混用可能会产生意想不到的 bug
-:::
-
 ## 简单使用
 
 ### 获取单元格

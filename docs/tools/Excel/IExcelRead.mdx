@@ -53,16 +53,6 @@ using IExcelRead reader = new EPPlusExcelRead(filePath);
 using IExcelRead reader = new MiniExcelRead(filePath);
 ```
 
-:::tip
-为了降低心智负担, `IExcelRead` 有静态方法 `GetExcelRead`, 用以自动生成 `IExcelRead` 的实例
-
-5M 以上的自动使用 `MiniExcel` 作为实现, 其他时候随机使用 EPPlus 或 NPOI
-:::
-
-```csharp
-using IExcelRead reader = IExcelRead.GetExcelRead(filePath);
-```
-
 ## 使用
 
 ### 获取单元格的值
