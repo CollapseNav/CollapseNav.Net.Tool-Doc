@@ -2,10 +2,6 @@ kind: pipeline
 type: docker
 name: default
 
-platform:
-  os: linux
-  arch: arm64
-
 clone:
   skip_verify: true
 
@@ -40,10 +36,10 @@ steps:
       - export datetag=$(date +%Y-%m-%d-%H-%M)
       - export dockerorigin=docker.collapsenav.cn
       - docker login $dockerorigin -u $DOCKERUSER -p $DOCKERPWD
-      - docker tag $IMAGE $dockerorigin/$IMAGE
-      - docker tag $IMAGE $dockerorigin/$IMAGE:$datetag
-      - docker push $dockerorigin/$IMAGE
-      - docker push $dockerorigin/$IMAGE:$datetag
+      - docker tag $IMAGE $dockerorigin/doc/$IMAGE
+      - docker tag $IMAGE $dockerorigin/doc/$IMAGE:$datetag
+      - docker push $dockerorigin/doc/$IMAGE
+      - docker push $dockerorigin/doc/$IMAGE:$datetag
 volumes:
   - name: dockersock
     host:
