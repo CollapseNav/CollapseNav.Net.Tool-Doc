@@ -5,323 +5,335 @@ sidebar_position: 1
 
 这里推荐使用Docker进行部署
 
-找个目录定义以下的三个文件
+受限需要找个目录定义以下的三个文件
 
-## apisix_conf/config.yaml
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
-apisix所需要使用的配置文件
-
-```yml
-#
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# If you want to set the specified configuration value, you can set the new
-# in this file. For example if you want to specify the etcd address:
-#
-# deployment:
-#   role: traditional
-#   role_traditional:
-#     config_provider: etcd
-#   etcd:
-#     host:
-#       - http://127.0.0.1:2379
-#
-# To configure via environment variables, you can use `${{VAR}}` syntax. For instance:
-#
-# deployment:
-#   role: traditional
-#   role_traditional:
-#     config_provider: etcd
-#   etcd:
-#     host:
-#       - http://${{ETCD_HOST}}:2379
-#
-# And then run `export ETCD_HOST=$your_host` before `make init`.
-#
-# If the configured environment variable can't be found, an error will be thrown.
-#
-# Also, If you want to use default value when the environment variable not set,
-# Use `${{VAR:=default_value}}` instead. For instance:
-#
-# deployment:
-#   role: traditional
-#   role_traditional:
-#     config_provider: etcd
-#   etcd:
-#     host:
-#       - http://${{ETCD_HOST:=localhost}}:2379
-#
-# This will find environment variable `ETCD_HOST` first, and if it's not exist it will use `localhost` as default value.
-#
-apisix:
-  ssl:
-    enable: true
-    listen:                                       # APISIX listening port for HTTPS traffic.
-      - port: 9443
-        enable_http2: true
-      # - ip: 127.0.0.3                           # If not set, default to `0.0.0.0`.
-      #   port: 9445
-      #   enable_http2: true
-    # ssl_trusted_certificate: /path/to/ca-cert   # Set the path to CA certificates used to verify client
-                                                  # certificates in the PEM format.
-    ssl_protocols: TLSv1.2 TLSv1.3                # TLS versions supported.
-deployment:
-  role: traditional
-  role_traditional:
-    config_provider: etcd
-  etcd:
-    host:
-      - http://etcd:2379
-  admin:
-    admin_key:
-      - name: admin
-        key: edd1c9f034335f136f87ad84b625c8f1  # using fixed API token has security risk, please update it when you deploy to production environment
-        role: admin
-```
-
-## apisix_dashboard/config.yaml
-
-dashboard所需要使用的配置文件
-
-```yml
-#
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-
-# yamllint disable rule:comments-indentation
-conf:
-  listen:
-    # host: 127.0.0.1     # the address on which the `Manager API` should listen.
-                          # The default value is 0.0.0.0, if want to specify, please enable it.
-                          # This value accepts IPv4, IPv6, and hostname.
-    port: 9000            # The port on which the `Manager API` should listen.
-
-  # ssl:
-  #   host: 127.0.0.1     # the address on which the `Manager API` should listen for HTTPS.
-                          # The default value is 0.0.0.0, if want to specify, please enable it.
-  #   port: 9001            # The port on which the `Manager API` should listen for HTTPS.
-  #   cert: "/tmp/cert/example.crt" # Path of your SSL cert.
-  #   key:  "/tmp/cert/example.key"  # Path of your SSL key.
-
-  allow_list:             # If we don't set any IP list, then any IP access is allowed by default.
-    - 127.0.0.1           # The rules are checked in sequence until the first match is found.
-    - ::1
-    - 0.0.0.0/0
-    - etcd                 # In this example, access is allowed only for IPv4 network 127.0.0.1, and for IPv6 network ::1.
-                          # It also support CIDR like 192.168.1.0/24 and 2001:0db8::/32
-  etcd:
-    endpoints:            # supports defining multiple etcd host addresses for an etcd cluster
-      - etcd:2379
-                          # yamllint disable rule:comments-indentation
-                          # etcd basic auth info
-    # username: "root"    # ignore etcd username if not enable etcd auth
-    # password: "123456"  # ignore etcd password if not enable etcd auth
-    mtls:
-      key_file: ""          # Path of your self-signed client side key
-      cert_file: ""         # Path of your self-signed client side cert
-      ca_file: ""           # Path of your self-signed ca cert, the CA is used to sign callers' certificates
-    # prefix: /apisix       # apisix config's prefix in etcd, /apisix by default
-  log:
-    error_log:
-      level: warn       # supports levels, lower to higher: debug, info, warn, error, panic, fatal
-      file_path:
-        logs/error.log  # supports relative path, absolute path, standard output
-                        # such as: logs/error.log, /tmp/logs/error.log, /dev/stdout, /dev/stderr
-                        # such as absolute path on Windows: winfile:///C:\error.log
-    access_log:
-      file_path:
-        logs/access.log  # supports relative path, absolute path, standard output
-                         # such as: logs/access.log, /tmp/logs/access.log, /dev/stdout, /dev/stderr
-                         # such as absolute path on Windows: winfile:///C:\access.log
-                         # log example: 2020-12-09T16:38:09.039+0800	INFO	filter/logging.go:46	/apisix/admin/routes/r1	{"status": 401, "host": "127.0.0.1:9000", "query": "asdfsafd=adf&a=a", "requestId": "3d50ecb8-758c-46d1-af5b-cd9d1c820156", "latency": 0, "remoteIP": "127.0.0.1", "method": "PUT", "errs": []}
-  max_cpu: 0             # supports tweaking with the number of OS threads are going to be used for parallelism. Default value: 0 [will use max number of available cpu cores considering hyperthreading (if any)]. If the value is negative, is will not touch the existing parallelism profile.
-  # security:
-  #   access_control_allow_origin: "http://httpbin.org"
-  #   access_control_allow_credentials: true          # support using custom cors configration
-  #   access_control_allow_headers: "Authorization"
-  #   access_control-allow_methods: "*"
-  #   x_frame_options: "deny"
-  #   content_security_policy: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src xx.xx.xx.xx:3000"  # You can set frame-src to provide content for your grafana panel.
-
-authentication:
-  secret:
-    secret              # secret for jwt token generation.
-                        # NOTE: Highly recommended to modify this value to protect `manager api`.
-                        # if it's default value, when `manager api` start, it will generate a random string to replace it.
-  expire_time: 3600     # jwt token expire time, in second
-  users:                # yamllint enable rule:comments-indentation
-    - username: admin   # username and password for login `manager api`
-      password: admin
-
-oidc:
-  enabled: false
-  expire_time: 3600
-  client_id: dashboard
-  client_secret: dashboard
-  auth_url: http://172.17.0.1:8080/auth/realms/master/protocol/openid-connect/auth
-  token_url: http://172.17.0.1:8080/auth/realms/master/protocol/openid-connect/token
-  user_info_url: http://172.17.0.1:8080/auth/realms/master/protocol/openid-connect/userinfo
-  redirect_url: http://127.0.0.1:9000/apisix/admin/oidc/callback
-  scope: openid
-
-plugins:
-  - api-breaker
-  - authz-casbin
-  - authz-casdoor
-  - authz-keycloak
-  - aws-lambda
-  - azure-functions
-  - basic-auth
-  # - batch-requests
-  - clickhouse-logger
-  - client-control
-  - consumer-restriction
-  - cors
-  - csrf
-  - datadog
-  # - dubbo-proxy
-  - echo
-  - error-log-logger
-  # - example-plugin
-  - ext-plugin-post-req
-  - ext-plugin-post-resp
-  - ext-plugin-pre-req
-  - fault-injection
-  - file-logger
-  - forward-auth
-  - google-cloud-logging
-  - grpc-transcode
-  - grpc-web
-  - gzip
-  - hmac-auth
-  - http-logger
-  - ip-restriction
-  - jwt-auth
-  - kafka-logger
-  - kafka-proxy
-  - key-auth
-  - ldap-auth
-  - limit-conn
-  - limit-count
-  - limit-req
-  - loggly
-  # - log-rotate
-  - mocking
-  # - node-status
-  - opa
-  - openid-connect
-  - opentelemetry
-  - openwhisk
-  - prometheus
-  - proxy-cache
-  - proxy-control
-  - proxy-mirror
-  - proxy-rewrite
-  - public-api
-  - real-ip
-  - redirect
-  - referer-restriction
-  - request-id
-  - request-validation
-  - response-rewrite
-  - rocketmq-logger
-  - server-info
-  - serverless-post-function
-  - serverless-pre-function
-  - skywalking
-  - skywalking-logger
-  - sls-logger
-  - splunk-hec-logging
-  - syslog
-  - tcp-logger
-  - traffic-split
-  - ua-restriction
-  - udp-logger
-  - uri-blocker
-  - wolf-rbac
-  - zipkin
-  - elasticsearch-logge
-  - openfunction
-  - tencent-cloud-cls
-  - ai
-  - cas-auth
-```
-
-## docker-compose
-
-```yml
-version: '0.1'
-services:
-  etcd:
-    container_name: etcd
-    image: bitnami/etcd
-    restart: always
-    ports:
-      - 2379:2379
-      - 2380:2380
-    networks:
-      - apisix
-    environment:
-      - ETCD_ENABLE_V2=true
-      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
-      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
-      - ALLOW_NONE_AUTHENTICATION=yes
-    volumes:
-      - ./etcd/data:/bitnami/etcd/data
+<Tabs>
+  <TabItem value='config' label='apisix_conf/config.yaml'>
+  ```yml
+  #
+  # Licensed to the Apache Software Foundation (ASF) under one or more
+  # contributor license agreements.  See the NOTICE file distributed with
+  # this work for additional information regarding copyright ownership.
+  # The ASF licenses this file to You under the Apache License, Version 2.0
+  # (the "License"); you may not use this file except in compliance with
+  # the License.  You may obtain a copy of the License at
+  #
+  #     http://www.apache.org/licenses/LICENSE-2.0
+  #
+  # Unless required by applicable law or agreed to in writing, software
+  # distributed under the License is distributed on an "AS IS" BASIS,
+  # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  # See the License for the specific language governing permissions and
+  # limitations under the License.
+  #
+  # If you want to set the specified configuration value, you can set the new
+  # in this file. For example if you want to specify the etcd address:
+  #
+  # deployment:
+  #   role: traditional
+  #   role_traditional:
+  #     config_provider: etcd
+  #   etcd:
+  #     host:
+  #       - http://127.0.0.1:2379
+  #
+  # To configure via environment variables, you can use `${{VAR}}` syntax. For instance:
+  #
+  # deployment:
+  #   role: traditional
+  #   role_traditional:
+  #     config_provider: etcd
+  #   etcd:
+  #     host:
+  #       - http://${{ETCD_HOST}}:2379
+  #
+  # And then run `export ETCD_HOST=$your_host` before `make init`.
+  #
+  # If the configured environment variable can't be found, an error will be thrown.
+  #
+  # Also, If you want to use default value when the environment variable not set,
+  # Use `${{VAR:=default_value}}` instead. For instance:
+  #
+  # deployment:
+  #   role: traditional
+  #   role_traditional:
+  #     config_provider: etcd
+  #   etcd:
+  #     host:
+  #       - http://${{ETCD_HOST:=localhost}}:2379
+  #
+  # This will find environment variable `ETCD_HOST` first, and if it's not exist it will use `localhost` as default value.
+  #
   apisix:
-    container_name: apisix
-    image: apache/apisix:3.6.0-debian
-    restart: always
-    ports:
-      - 9080:9080
-      - 9091:9091
-      - 9443:9443
-    networks:
-      - apisix
-    volumes:
-      - ./apisix_conf/config.yaml:/usr/local/apisix/conf/config.yaml
-      - ./apisix_log:/usr/local/apisix/logs
-  dashboard:
-    container_name: dashboard
-    image: bitnami/apisix-dashboard
-    restart: always
-    ports:
-      - 9000:9000
-    networks:
-      - apisix
-    depends_on:
-      - etcd
-      - apisix
-    volumes:
-      - ./apisix_dashboard/config.yaml:/opt/bitnami/apisix-dashboard/conf/conf.yaml
-networks:
-  apisix:
+    ssl:
+      enable: true
+      listen:                                       # APISIX listening port for HTTPS traffic.
+        - port: 9443
+          enable_http2: true
+        # - ip: 127.0.0.3                           # If not set, default to `0.0.0.0`.
+        #   port: 9445
+        #   enable_http2: true
+      # ssl_trusted_certificate: /path/to/ca-cert   # Set the path to CA certificates used to verify client
+                                                    # certificates in the PEM format.
+      ssl_protocols: TLSv1.2 TLSv1.3                # TLS versions supported.
+  deployment:
+    role: traditional
+    role_traditional:
+      config_provider: etcd
+    etcd:
+      host:
+        - http://etcd:2379
+    admin:
+      admin_key:
+        - name: admin
+          key: edd1c9f034335f136f87ad84b625c8f1  # using fixed API token has security risk, please update it when you deploy to production environment
+          role: admin
+  ```
+  </TabItem>
+
+  <TabItem value='dashboard' label='apisix_dashboard/config.yaml'>
+  ```yml
+  #
+  # Licensed to the Apache Software Foundation (ASF) under one or more
+  # contributor license agreements.  See the NOTICE file distributed with
+  # this work for additional information regarding copyright ownership.
+  # The ASF licenses this file to You under the Apache License, Version 2.0
+  # (the "License"); you may not use this file except in compliance with
+  # the License.  You may obtain a copy of the License at
+  #
+  #     http://www.apache.org/licenses/LICENSE-2.0
+  #
+  # Unless required by applicable law or agreed to in writing, software
+  # distributed under the License is distributed on an "AS IS" BASIS,
+  # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  # See the License for the specific language governing permissions and
+  # limitations under the License.
+  #
+
+  # yamllint disable rule:comments-indentation
+  conf:
+    listen:
+      # host: 127.0.0.1     # the address on which the `Manager API` should listen.
+                            # The default value is 0.0.0.0, if want to specify, please enable it.
+                            # This value accepts IPv4, IPv6, and hostname.
+      port: 9000            # The port on which the `Manager API` should listen.
+
+    # ssl:
+    #   host: 127.0.0.1     # the address on which the `Manager API` should listen for HTTPS.
+                            # The default value is 0.0.0.0, if want to specify, please enable it.
+    #   port: 9001            # The port on which the `Manager API` should listen for HTTPS.
+    #   cert: "/tmp/cert/example.crt" # Path of your SSL cert.
+    #   key:  "/tmp/cert/example.key"  # Path of your SSL key.
+
+    allow_list:             # If we don't set any IP list, then any IP access is allowed by default.
+      - 127.0.0.1           # The rules are checked in sequence until the first match is found.
+      - ::1
+      - 0.0.0.0/0
+      - etcd                 # In this example, access is allowed only for IPv4 network 127.0.0.1, and for IPv6 network ::1.
+                            # It also support CIDR like 192.168.1.0/24 and 2001:0db8::/32
+    etcd:
+      endpoints:            # supports defining multiple etcd host addresses for an etcd cluster
+        - etcd:2379
+                            # yamllint disable rule:comments-indentation
+                            # etcd basic auth info
+      # username: "root"    # ignore etcd username if not enable etcd auth
+      # password: "123456"  # ignore etcd password if not enable etcd auth
+      mtls:
+        key_file: ""          # Path of your self-signed client side key
+        cert_file: ""         # Path of your self-signed client side cert
+        ca_file: ""           # Path of your self-signed ca cert, the CA is used to sign callers' certificates
+      # prefix: /apisix       # apisix config's prefix in etcd, /apisix by default
+    log:
+      error_log:
+        level: warn       # supports levels, lower to higher: debug, info, warn, error, panic, fatal
+        file_path:
+          logs/error.log  # supports relative path, absolute path, standard output
+                          # such as: logs/error.log, /tmp/logs/error.log, /dev/stdout, /dev/stderr
+                          # such as absolute path on Windows: winfile:///C:\error.log
+      access_log:
+        file_path:
+          logs/access.log  # supports relative path, absolute path, standard output
+                          # such as: logs/access.log, /tmp/logs/access.log, /dev/stdout, /dev/stderr
+                          # such as absolute path on Windows: winfile:///C:\access.log
+                          # log example: 2020-12-09T16:38:09.039+0800	INFO	filter/logging.go:46	/apisix/admin/routes/r1	{"status": 401, "host": "127.0.0.1:9000", "query": "asdfsafd=adf&a=a", "requestId": "3d50ecb8-758c-46d1-af5b-cd9d1c820156", "latency": 0, "remoteIP": "127.0.0.1", "method": "PUT", "errs": []}
+    max_cpu: 0             # supports tweaking with the number of OS threads are going to be used for parallelism. Default value: 0 [will use max number of available cpu cores considering hyperthreading (if any)]. If the value is negative, is will not touch the existing parallelism profile.
+    # security:
+    #   access_control_allow_origin: "http://httpbin.org"
+    #   access_control_allow_credentials: true          # support using custom cors configration
+    #   access_control_allow_headers: "Authorization"
+    #   access_control-allow_methods: "*"
+    #   x_frame_options: "deny"
+    #   content_security_policy: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src xx.xx.xx.xx:3000"  # You can set frame-src to provide content for your grafana panel.
+
+  authentication:
+    secret:
+      secret              # secret for jwt token generation.
+                          # NOTE: Highly recommended to modify this value to protect `manager api`.
+                          # if it's default value, when `manager api` start, it will generate a random string to replace it.
+    expire_time: 3600     # jwt token expire time, in second
+    users:                # yamllint enable rule:comments-indentation
+      - username: admin   # username and password for login `manager api`
+        password: admin
+
+  oidc:
+    enabled: false
+    expire_time: 3600
+    client_id: dashboard
+    client_secret: dashboard
+    auth_url: http://172.17.0.1:8080/auth/realms/master/protocol/openid-connect/auth
+    token_url: http://172.17.0.1:8080/auth/realms/master/protocol/openid-connect/token
+    user_info_url: http://172.17.0.1:8080/auth/realms/master/protocol/openid-connect/userinfo
+    redirect_url: http://127.0.0.1:9000/apisix/admin/oidc/callback
+    scope: openid
+
+  plugins:
+    - api-breaker
+    - authz-casbin
+    - authz-casdoor
+    - authz-keycloak
+    - aws-lambda
+    - azure-functions
+    - basic-auth
+    # - batch-requests
+    - clickhouse-logger
+    - client-control
+    - consumer-restriction
+    - cors
+    - csrf
+    - datadog
+    # - dubbo-proxy
+    - echo
+    - error-log-logger
+    # - example-plugin
+    - ext-plugin-post-req
+    - ext-plugin-post-resp
+    - ext-plugin-pre-req
+    - fault-injection
+    - file-logger
+    - forward-auth
+    - google-cloud-logging
+    - grpc-transcode
+    - grpc-web
+    - gzip
+    - hmac-auth
+    - http-logger
+    - ip-restriction
+    - jwt-auth
+    - kafka-logger
+    - kafka-proxy
+    - key-auth
+    - ldap-auth
+    - limit-conn
+    - limit-count
+    - limit-req
+    - loggly
+    # - log-rotate
+    - mocking
+    # - node-status
+    - opa
+    - openid-connect
+    - opentelemetry
+    - openwhisk
+    - prometheus
+    - proxy-cache
+    - proxy-control
+    - proxy-mirror
+    - proxy-rewrite
+    - public-api
+    - real-ip
+    - redirect
+    - referer-restriction
+    - request-id
+    - request-validation
+    - response-rewrite
+    - rocketmq-logger
+    - server-info
+    - serverless-post-function
+    - serverless-pre-function
+    - skywalking
+    - skywalking-logger
+    - sls-logger
+    - splunk-hec-logging
+    - syslog
+    - tcp-logger
+    - traffic-split
+    - ua-restriction
+    - udp-logger
+    - uri-blocker
+    - wolf-rbac
+    - zipkin
+    - elasticsearch-logge
+    - openfunction
+    - tencent-cloud-cls
+    - ai
+    - cas-auth
+  ```
+  </TabItem>
+
+  <TabItem value='docker' label='docker-compose.yaml'>
+  :::note
+  最新版本的apisix和dashboard的兼容可能不太好, 建议使用这里给出的版本
+  :::
+  ```yml
+  version: '0.1'
+  services:
+    etcd:
+      container_name: etcd
+      image: bitnami/etcd
+      restart: always
+      ports:
+        - 2379:2379
+        - 2380:2380
+      networks:
+        - apisix
+      environment:
+        - ETCD_ENABLE_V2=true
+        - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+        - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+        - ALLOW_NONE_AUTHENTICATION=yes
+      volumes:
+        - ./etcd/data:/bitnami/etcd/data
+    apisix:
+      container_name: apisix
+      // highlight-next-line
+      image: apache/apisix:3.6.0-debian
+      restart: always
+      ports:
+        - 9080:9080
+        - 9091:9091
+        - 9443:9443
+      networks:
+        - apisix
+      volumes:
+        - ./apisix_conf/config.yaml:/usr/local/apisix/conf/config.yaml
+        - ./apisix_log:/usr/local/apisix/logs
+    dashboard:
+      container_name: dashboard
+      image: bitnami/apisix-dashboard
+      restart: always
+      ports:
+        - 9000:9000
+      networks:
+        - apisix
+      depends_on:
+        - etcd
+        - apisix
+      volumes:
+        - ./apisix_dashboard/config.yaml:/opt/bitnami/apisix-dashboard/conf/conf.yaml
+  networks:
+    apisix:
+  ```
+  </TabItem>
+</Tabs>
+
+
+各个文件创建完成之后, 在 `docker-compose.yaml` 的同级目录下执行命令
+
+```shell
+docker compose up -d
 ```
 
-
+即可启动对应服务, 之后访问dashboard的 `9000` 端口, 输入账号密码即可
