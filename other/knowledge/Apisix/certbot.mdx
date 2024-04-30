@@ -1,0 +1,39 @@
+---
+title: 使用certbot申请泛域名证书
+sidebar_position: 2
+---
+
+在apisix中可以使用https证书, 但是单个申请证书相对来说就非常麻烦了, 所以在没有永久证书或者有效期很长的证书的时候, 推荐通过certbot申请泛域名证书
+
+首先安装 certbot
+
+```shell
+sudo apt install certbot
+```
+
+泛域名证书必须要使用 dns 验证的方式生成, 所以在申请的时候还需要在域名服务商那儿配合修改记录
+
+```shell
+certbot certonly -d domain.cn -d *.domain.cn --manual --preferred-challenges dns
+```
+
+执行命令之后依次输入邮箱(快要过期时会发送提醒), 两次y进行同意
+
+之后会见到如下的输出
+
+```txt
+Please deploy a DNS TXT record under the name:
+
+_acme-challenge.domain.cn.
+
+with the following value:
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+然后创建一条名为 `_acme-challenge` 的 `TXT记录`, 记录值为最下面的一长串字符, 确认保存之后等一会儿再按回车
+
+如果不确定记录是否更新, 可以通过 [https://ipw.cn/dns/](https://ipw.cn/dns/) 查询 `_acme-challenge.domain.cn` 的TXT记录值
+
+
+
