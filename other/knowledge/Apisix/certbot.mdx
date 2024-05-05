@@ -14,7 +14,7 @@ sudo apt install certbot
 泛域名证书必须要使用 dns 验证的方式生成, 所以在申请的时候还需要在域名服务商那儿配合修改记录
 
 ```shell
-certbot certonly -d domain.cn -d *.domain.cn --manual --preferred-challenges dns
+certbot certonly -d *.domain.cn --manual --preferred-challenges dns
 ```
 
 执行命令之后依次输入邮箱(快要过期时会发送提醒), 两次y进行同意
@@ -34,6 +34,14 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 然后创建一条名为 `_acme-challenge` 的 `TXT记录`, 记录值为最下面的一长串字符, 确认保存之后等一会儿再按回车
 
 如果不确定记录是否更新, 可以通过 [https://ipw.cn/dns/](https://ipw.cn/dns/) 查询 `_acme-challenge.domain.cn` 的TXT记录值
+
+在确保记录值已经更新完成之后, 打开dashboard中的 **证书** 页面, 点击 **创建证书**
+
+![cert](/img/apisix/cert.webp)
+
+证书中填入`fullchain.pem`的内容, 私钥中填入 `privkey.pem` 的内容, 然后下一步确认即可
+
+之后在创建路由选择域名时就可以随意填写心仪的域名而不需要再去创建新的证书了
 
 
 
