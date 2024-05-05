@@ -91,10 +91,10 @@ const config = {
             activeBaseRegex: `/other/knowledge/`,
           },
           {
-            to: '/other/dotnet',
+            to: '/other/Dotnet',
             label: 'Dotnet',
             position: 'left',
-            activeBaseRegex: `/other/dotnet/`,
+            activeBaseRegex: `/other/Dotnet/`,
           },
           {
             to: '/other/docusaurus/',
