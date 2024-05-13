@@ -29,7 +29,6 @@ class Character{
 }
 class Item{
     + Add(Item)
-    + Pop()
     + Get(int)
     + Drop(int)
     + Show(int)
@@ -37,7 +36,6 @@ class Item{
 class Bag{
     + List~Item~ Items
     + Add(Item)
-    + Pop(Item)
     + Get(int)
     + Drop(int)
     + Show(int)
@@ -57,7 +55,6 @@ class Item
     public string Name { get; }
     public Item(string Name) => this.Name = Name;
     public virtual void Add(Item item) { }
-    public virtual Item Pop() => this;
     public virtual Item Get(int i) => this;
     public virtual void Drop(int i) { }
     public virtual void Show(int level = 0) => Console.WriteLine("".PadLeft(level, '-') + Name);
@@ -68,12 +65,6 @@ class Bag : Item
     public Bag(string Name) : base(Name) => Items = new List<Item>();
     public override void Add(Item item) => Items.Add(item);
     public override Item Get(int i) => Items[i];
-    public override Item Pop()
-    {
-        var item = Items.Last();
-        Items.Remove(item);
-        return item;
-    }
     public override void Drop(int i) => Items.RemoveAt(i);
     public override void Show(int level = 0)
     {
