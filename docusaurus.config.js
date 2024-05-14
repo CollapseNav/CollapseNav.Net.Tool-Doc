@@ -5,7 +5,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'CollapseNav个人站',
+  title: 'CollapseNav',
   tagline: '我觉得可以提升(我自己的)开发效率的dotnet工具包',
   url: 'https://your-docusaurus-test-site.com',
   baseUrl: '/',
@@ -104,7 +104,7 @@ const config = {
           },
           { to: '/blog', label: 'Blog', position: 'left' },
           {
-            href: 'https://github.com/CollapseNav/Collapsenav.Net.Tool',
+            href: 'https://github.com/CollapseNav',
             label: 'GitHub',
             position: 'right',
           },
@@ -116,10 +116,6 @@ const config = {
           {
             title: 'Links',
             items: [
-              {
-                label: 'Repo',
-                href: 'https://github.com/CollapseNav/Collapsenav.Net.Tool',
-              },
               {
                 label: 'Docusaurus',
                 href: 'https://docusaurus.io/zh-CN/',
@@ -140,12 +136,8 @@ const config = {
             items: [
               {
                 label: 'GitHub',
-                href: 'https://github.com/CollapseNav/Collapsenav.Net.Tool',
-              },
-              {
-                label: 'Author',
                 href: 'https://github.com/CollapseNav',
-              },
+              }
             ],
           },
         ],
