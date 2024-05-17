@@ -77,7 +77,7 @@ public class Synapse
 }
 ```
 
-神经元在计算的时候需要过一次激活函数, 虽然有 sigmoid 这样的经典, 但我觉得这边还是用简单的 Relu 比较好
+前几层的神经元在计算时需要过一次非线性的激活函数, 使其可以处理现实中的复杂问题, 虽然有 sigmoid 这样的经典, 但我觉得这边还是用简单并且计算量更少的 Relu 比较好
 
 ![relu](/img/bpnn/relu.webp)
 
@@ -198,9 +198,38 @@ public class NetWork
 以上的内容是神经网络的前向传播, 接下来介绍下最重要的反向传播(Backward)
 :::
 
-反向传播(Backward)是神经网络中的一个非常重要的概念, 虽然网络可以通过前向传播用输出计算出输出, 但是其中的权重等参数都是随机的, 几乎不可能正好随机出一组可以拟合数据集的权重
+反向传播(Backward)是神经网络中一个非常重要的概念, 虽然网络可以通过前向传播用输入计算输出, 但是其中的权重等参数都是随机的, 几乎不可能正好随机出一组可以拟合数据集的权重
 
-因此我们需要在输出之后计算出输出值与正确值的误差, 然后将这个误差一层一层反向传播回去, 根据这个误差调整
+因此我们需要在输出之后计算输出值与正确值的误差, 然后将这个误差一层一层反向传播回去, 根据这个误差一点一点调整权重
+
+更新权重的第一步就是先计算输出与实际值的误差, 为了简化计算, 我们可以直接使用最简单的相减之后的差值作为误差
+
+```csharp
+public class Neuron
+{
+    public double Value { get; set; }
+    public double GetError(double target) => target - Value;
+}
+public class NetWork
+{
+    public List<Layer> Layers { get; set; }
+    public Layer Input => Layers.First();
+    public Layer Output => Layers.Last();
+    public double GetError(double[] target) => Output.SelectWithIndex().Sum(i => i.value.GetError(target[i.index]));
+    public double[] Forward(double[] inputs)
+    {
+        // 为输入层的神经元复制
+        Input.SelectWithIndex().ForEach(i => i.value.Value = inputs[i.index]);
+        // 调用输出层的GetValue方法, 计算输出层的神经元的输出值
+        return Output.Select(i => i.GetValue()).ToArray();
+    }
+}
+```
+
+当网络经过 `Forward` 计算出每个神经元的 `Value` 之后, 将正确值输入 `GetError` 可计算出简单的误差值
+
+
+
 
 
 
