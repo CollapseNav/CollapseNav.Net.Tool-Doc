@@ -7,9 +7,7 @@ sidebar_position: 12
 在此之前最好先安装 `Collapsenav.Net.Tool` nuget包
 :::
 
-BPNN是反向传播神经网络(Back Propagation Neural Network)算法, 是一种监督式学习的多层前馈神经网络, 可以说是现代神经网络的鼻祖和奠基者, 提出了反向传播算法用于更新连接权重
-
-为了学习和熟悉bp神经网络, 我用 csharp 实现了一个简单的神经网络
+bpnn是反向传播神经网络(Back Propagation Neural Network)算法, 是一种监督式学习的多层前馈神经网络, 可以说是现代神经网络的鼻祖和奠基者, 提出了反向传播算法用于更新连接权重
 
 ![bpnetwork](/img/bpnn/bpnn.webp)
 
@@ -17,17 +15,19 @@ bp神经网络的结构如上图所示, 包括输入层, 隐藏层和输出层
 
 每个圆形都是一个神经元(Neuron), 每层神经元之间通过突触(Synapse)连接
 
+## 神经元(Neuron)
+
 ![neuron](/img/bpnn/neuron.webp)
 
 一般来说一个神经元有以上组成部分
 
-其结构类似下面这样
+其结构用代码表示大概就是下面这样
 
 ```csharp
 public class Neuron
 {
     /// <summary>
-    /// 值
+    /// 神经元本身的输出值
     /// </summary>
     public double Value { get; set; }
     /// <summary>
@@ -51,13 +51,13 @@ public class Neuron
 
 `Inputs` 和 `Outputs` 分别对应输入输出的突触结构, 输入是与上一层所有神经元的连接, 输出是与下一层所有神经元的连接
 
-然后来看一下突触的结构
+## 突触(Synapse)
+
+然后来看一下突触(Synapse)的结构
 
 ![synapse](/img/bpnn/synapse.webp)
 
 突触的结构相比神经元来说就非常简单了, 只有前后两个神经元和这条连接的对应权重
-
-代码结构类似如下
 
 ```csharp
 public class Synapse
@@ -76,6 +76,8 @@ public class Synapse
     public double Weight { get; set; }
 }
 ```
+
+## 激活函数(ActivationFunction)
 
 前几层的神经元在计算时需要过一次非线性的激活函数, 使其可以处理现实中的复杂问题, 虽然有 sigmoid 这样的经典, 但我觉得这边还是用简单并且计算量更少的 Relu 比较好
 
@@ -98,6 +100,8 @@ public class ReLu : IActivationFunction
     public static ReLu Instance = new ReLu();
 }
 ```
+
+## 前向传播(Forward)计算
 
 神经元接受上一层神经元的输出加权求和, 然后通过激活函数和偏置之后计算出自己的输出, 提供给下一层
 
@@ -198,6 +202,8 @@ public class NetWork
 以上的内容是神经网络的前向传播, 接下来介绍下最重要的反向传播(Backward)
 :::
 
+## 反向传播
+
 反向传播(Backward)是神经网络中一个非常重要的概念, 虽然网络可以通过前向传播用输入计算输出, 但是其中的权重等参数都是随机的, 几乎不可能正好随机出一组可以拟合数据集的权重
 
 因此我们需要在输出之后计算输出值与正确值的误差, 然后将这个误差一层一层反向传播回去, 根据这个误差一点一点调整权重
@@ -228,8 +234,14 @@ public class NetWork
 
 当网络经过 `Forward` 计算出每个神经元的 `Value` 之后, 将正确值输入 `GetError` 可计算出简单的误差值
 
+```csharp
+// 使用输入进行前向传播计算
+netWork.Forward(new double[] { 1, 2, 3 });
+// 然后传入实际值计算出误差
+netWork.GetError(new double[] { 23 });
+```
 
-
+当完成误差计算之后, 我们需要做的就是想办法将这个误差从输出层一层一层反向传播回去, 并且在传播过程中同步更新神经元的偏置(Bias)和突触的权重(Weight)
 
 
 
