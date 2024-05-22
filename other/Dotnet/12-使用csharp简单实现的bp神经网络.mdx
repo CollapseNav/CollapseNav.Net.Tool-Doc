@@ -251,3 +251,531 @@ netWork.GetError(new double[] { 23 });
 
 ![x=y](/img/bpnn/y=x.webp)
 
+看起来就是函数上某个点的切线, 计算梯度时需要带入激活函数的偏导数进行计算
+
+![relu](/img/bpnn/relu.webp)
+
+之前选择Relu的一个原因就是偏导数非常容易计算, 大于0时为1, 小于0时为0, 对于计算来说非常方便
+
+```csharp
+public class ReLu : IActivationFunction
+{
+    public double Forward(double input) => input > 0 ? input : 0;
+    public double Back(double input) => input >= 0 ? 1 : 0;
+    public static ReLu Instance = new ReLu();
+}
+```
+
+```csharp
+public class Neuron
+{
+    public double Value { get; set; }
+    /// <summary>
+    /// 激活函数(Relu)
+    /// </summary>
+    public IActivationFunction ActivationFunction { get; set; }
+    public List<Synapse> Inputs { get; set; }
+    public List<Synapse> Outputs { get; set; }
+    /// <summary>
+    /// 梯度
+    /// </summary>
+    public double Gradient { get; set; }
+    public double GetError(double target) => target - Value;
+    public double GetGradient(double? target = null)
+    {
+        // 最后一层直接计算
+        if (target.HasValue)
+            Gradient = GetError(target.Value) * ActivationFunction.Back(Value);
+        // 如果存在输出神经元, 该神经元的梯度为后一层的梯度加权求和乘以偏导
+        if (Outputs.NotEmpty())
+            Gradient = Outputs.Sum(i => i.Output.Gradient * i.Weight) * ActivationFunction.Back(Value);
+        // 如果存在输入神经元, 则计算前一层的梯度
+        if (Inputs.NotEmpty())
+            Inputs.ForEach(i => i.Input.GetGradient());
+        return Gradient;
+    }
+}
+```
+
+最后一层输出层根据实际值先计算出误差, 然后用误差进行计算
+
+除此之外的其他层使用后一层的梯度乘以权重求和之后进行计算, 以此实现梯度从后向前反向传播
+
+计算出所有神经元的梯度之后就可以着手更新偏置和权重了
+
+在此需要引入 **学习率**(learning rate) 的概念
+
+之前的梯度代表方向, 学习率则代表了步长
+
+![learning rate](/img/bpnn/lrate.webp)
+
+左图是学习率设大了的情况, 每次步子长了, 可能会导致梯度越来越大
+
+如果设置了合适的学习率, 每次迈出的步子不大不小, 梯度会渐渐下降到相对较低的值
+
+有了学习率和梯度, 相乘之后可以获得一个 **系数**, 偏置和权重的更新就依据这个 **系数** 进行变化
+
+```csharp
+public class Neuron
+{
+    public double Bias { get; set; }
+    public List<Synapse> Inputs { get; set; }
+    /// <summary>
+    /// 梯度
+    /// </summary>
+    public double Gradient { get; set; }
+    /// <summary>
+    /// 更新权重
+    /// </summary>
+    /// <param name="lr">学习率</param>
+    public void UpdateWeight(double lr)
+    {
+        // 计算系数
+        var BiasDelta = lr * Gradient;
+        // 调整神经元的偏置
+        Bias += BiasDelta;
+        foreach (var synapse in Inputs)
+            // 更新突触权重
+            synapse.Weight += BiasDelta * synapse.Input.Value;
+    }
+}
+```
+
+以上就是一个非常简单的权重更新算法
+
+然后我们需要在 `Network` 中打一套组合拳, 通过实际值先计算梯度, 然后反向传播更新偏置和权重
+
+
+```csharp
+public class NetWork
+{
+    public List<Layer> Layers { get; set; }
+    /// <summary>
+    /// 输出层
+    /// </summary>
+    public Layer Output => Layers.Last();
+    public void Back(double[] target, double lr)
+    {
+        // 计算所有神经元的梯度, GetGradient 内部有递归处理
+        Output.SelectWithIndex().ForEach(kv => kv.value.GetGradient(target[kv.index]));
+        // 先将网络反过来
+        Layers.Reverse();
+        // 然后从后完全一层一层更新偏置和权重
+        Layers.ForEach(i => i.ForEach(ii => ii.UpdateWeight(lr)));
+        // 更新完成之后再度翻转, 使得网络恢复原状
+        Layers.Reverse();
+    }
+}
+```
+
+训练时的代码类似下面这样
+
+```csharp
+// 使用输入进行前向传播计算
+netWork.Forward(new double[] { 1, 2, 3 });
+// 然后传入实际值计算出误差
+var error = netWork.GetError(new double[] { 23 });
+// 反向传播更新权重
+netWork.Back(new double[] { 23 });
+```
+
+## 完整代码
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+
+<Tabs>
+
+    <TabItem value='主函数' label='Program.cs'>
+这里使用了Kaggle上的数据集 [学生表现](https://www.kaggle.com/datasets/nikhil7280/student-performance-multiple-linear-regression) 
+
+如果打不开 kaggle, 可以点击 <a href="/img/bpnn/archive.zip" target="_blank">下载文件</a>
+
+数据大致如下所示
+
+| Hours Studied | Previous Scores | Extracurricular Activities | Sleep Hours | Sample Question Papers Practiced | Performance Index |
+| ------------- | --------------- | -------------------------- | ----------- | -------------------------------- | ----------------- |
+| 7             | 99              | Yes                        | 9           | 1                                | 91                |
+| 4             | 82              | No                         | 4           | 2                                | 65                |
+| 8             | 51              | Yes                        | 7           | 2                                | 45                |
+| 5             | 52              | Yes                        | 5           | 2                                | 36                |
+| 7             | 75              | No                         | 8           | 5                                | 66                |
+
+以下是一个简单的训练及验证的代码, 仅供参考
+
+```csharp
+using Collapsenav.Net.Tool;
+using Collapsenav.Net.Tool.Excel;
+using bpnn_csharp;
+IEnumerable<StudentPreference> datas = // 随便用什么办法读取数据, 保证格式没错就行 ;
+
+// 划分训练集和测试集, 70%训练集，30%测试集
+var rate = 0.7;
+var train = datas.Take((int)(datas.Count() * rate)).ToList();
+var test = datas.Skip(train.Count()).ToList();
+
+// 一些超参设置
+// 学习率
+var lr = 1e-8;
+// 最大迭代次数
+var maxepoch = 50000;
+// 目标误差
+var targetError = 1e-3;
+// 随机数种子
+var seed = 0;
+
+// 减少运算量, 每次只取十分之一进行计算
+var count = train.Count / 10;
+
+// 构建网络并且设置随机种子
+NetWork model = new NetWork();
+model.AddLayer(5, ReLu.Instance)
+.AddLayer(6, ReLu.Instance)
+.AddLayer(1, Linear.Instance)
+.SetRandSeed(seed);
+
+// 开始训练
+Console.WriteLine("Train---------------");
+var trainError = 0.0;
+for (int epoch = 0; epoch++ < maxepoch;)
+{
+    double error = 0;
+    // 随机取十分之一的训练数据进行训练
+    foreach (var data in train.Shuffle().Take(count))
+    {
+        // 前向传播计算输出
+        model.Forward(data.GetInput());
+        // 反向传播
+        model.Back(data.GetOutput(), lr);
+        // 累计误差
+        error += model.GetError(data.GetOutput());
+    }
+    trainError += error / count;
+    // 每10次输出一次误差
+    if (epoch % 10 == 0)
+    {
+        trainError = Math.Abs(trainError) / 10;
+        Console.WriteLine($"{epoch / 10}-epoch:{epoch}, error:{trainError}");
+        // 达到目标误差时停止训练
+        if (trainError < targetError)
+            break;
+        trainError = 0;
+    }
+}
+
+// 开始测试
+Console.WriteLine("Test---------------");
+var testError = 0.0;
+foreach (var data in test)
+{
+    // 前向传播计算输出
+    var output = model.Forward(data.GetInput());
+    // 输出真值和预测值进行对比
+    Console.WriteLine($"{data.GetOutput()[0].PadRight(10)}{output.First()}");
+    // 累计误差
+    testError += model.GetError(data.GetOutput());
+}
+// 输出平均测试误差
+Console.WriteLine(testError / test.Count);
+
+class StudentPreference
+{
+    /// <summary>
+    /// 每个学生学习的总小时数
+    /// </summary>
+    public double Hours { get; set; }
+    /// <summary>
+    /// 学生在以前的测试中获得的分数
+    /// </summary>
+    public double PreScores { get; set; }
+    /// <summary>
+    /// 学生是否参加课外活动（是或否）
+    /// </summary>
+    public double Ext { get; set; }
+    /// <summary>
+    /// 学生每天的平均睡眠小时数
+    /// </summary>
+    public double Sleep { get; set; }
+    /// <summary>
+    /// 学生练习的样题数量
+    /// </summary>
+    public double Papers { get; set; }
+    /// <summary>
+    /// 衡量每个学生的整体表现
+    /// </summary>
+    public double Score { get; set; }
+    public double[] GetInput()
+    {
+        return new double[] { Hours, PreScores, Ext, Sleep, Papers };
+    }
+    public double[] GetOutput()
+    {
+        return new double[] { Score };
+    }
+}
+```
+
+
+```csharp
+```
+    </TabItem>
+
+    <TabItem value='神经元' label='Neuron.cs'>
+
+```csharp
+public class Neuron
+{
+    /// <summary>
+    /// 简单初始化神经元
+    /// </summary>
+    public Neuron(IActivationFunction actFun)
+        => (Inputs, Outputs, ActivationFunction, Bias) = (new List<Synapse>(), new List<Synapse>(), actFun, NetWork.GetRandom());
+    /// <summary>
+    /// 值
+    /// </summary>
+    public double Value { get; set; }
+    /// <summary>
+    /// 激活函数
+    /// </summary>
+    public IActivationFunction ActivationFunction { get; private set; }
+    /// <summary>
+    /// 偏置
+    /// </summary>
+    public double Bias { get; set; }
+    /// <summary>
+    /// 梯度
+    /// </summary>
+    public double Gradient { get; set; }
+    public double GetValue()
+    {
+        if (Inputs.NotEmpty())
+            Value = ActivationFunction.Forward(Inputs.Sum(i => i.Weight * i.Input.GetValue()) + Bias);
+        return Value;
+    }
+    public double GetGradient(double? target = null)
+    {
+        // 最后一层直接计算
+        if (target.HasValue)
+            Gradient = GetError(target.Value) * ActivationFunction.Back(Value);
+        // 如果存在输出神经元, 该神经元的梯度为后一层的梯度加权求和乘以偏导
+        if (Outputs.NotEmpty())
+            Gradient = Outputs.Sum(i => i.Output.Gradient * i.Weight) * ActivationFunction.Back(Value);
+        // 如果存在输入神经元, 则计算前一层的梯度
+        if (Inputs.NotEmpty())
+            Inputs.ForEach(i => i.Input.GetGradient());
+        return Gradient;
+    }
+    public double GetError(double target) => target - Value;
+    /// <summary>
+    /// 更新权重
+    /// </summary>
+    /// <param name="lr"></param>
+    public void UpdateWeight(double lr)
+    {
+        // 计算系数
+        var BiasDelta = lr * Gradient;
+        // 调整神经元的偏置
+        Bias += BiasDelta;
+        foreach (var synapse in Inputs)
+            // 更新突触权重
+            synapse.Weight += BiasDelta * synapse.Input.Value;
+    }
+    /// <summary>
+    /// 输入
+    /// </summary>
+    public List<Synapse> Inputs { get; set; }
+    /// <summary>
+    /// 输出
+    /// </summary>
+    public List<Synapse> Outputs { get; set; }
+}
+```
+    </TabItem>
+    <TabItem value='突触' label='Synapse.cs'>
+```csharp
+public class Synapse
+{
+    public Synapse(Neuron input, Neuron outPut)
+    {
+        (Input, Output, Weight) = (input, outPut, NetWork.GetRandom());
+        Input.Outputs.Add(this);
+        Output.Inputs.Add(this);
+    }
+    /// <summary>
+    /// 输入端
+    /// </summary>
+    public Neuron Input { get; set; }
+    /// <summary>
+    /// 输出端
+    /// </summary>
+    public Neuron Output { get; set; }
+    /// <summary>
+    /// 权重
+    /// </summary>
+    public double Weight { get; set; }
+    /// <summary>
+    /// 权重导数
+    /// </summary>
+    public double WeightDelta { get; set; }
+}
+```
+    </TabItem>
+    <TabItem value='激活函数接口' label='IActivationFunction.cs'>
+
+```csharp
+public interface IActivationFunction
+{
+    /// <summary>
+    /// 前向
+    /// </summary>
+    double Forward(double input);
+    /// <summary>
+    /// 反向
+    /// </summary>
+    double Back(double input);
+}
+```
+    </TabItem>
+
+    <TabItem value='激活函数' label='Relu.cs'>
+
+```csharp
+public class ReLu : IActivationFunction
+{
+    public double Forward(double input) => input > 0 ? input : 0;
+    public double Back(double input) => input >= 0 ? 1 : 0;
+    public static ReLu Instance = new ReLu();
+}
+public class Linear : IActivationFunction
+{
+    public double Forward(double input) => input;
+    public double Back(double input) => input;
+    public static Linear Instance = new Linear();
+}
+```
+    </TabItem>
+    <TabItem value='网络层' label='Layer.cs'>
+
+```csharp
+public class Layer : IEnumerable<Neuron>
+{
+    public IActivationFunction ActivationFunction { get; private set; }
+    public Layer(int size, IActivationFunction actFunc)
+    {
+        Neurons = new Neuron[size];
+        ActivationFunction = actFunc;
+        foreach (var i in Enumerable.Range(0, size))
+            Neurons[i] = new Neuron(ActivationFunction);
+    }
+    /// <summary>
+    /// 上一层
+    /// </summary>
+    public Layer? Previous
+    {
+        get => previous; set
+        {
+            previous = value;
+            // 自动创建突触连接两次神经元
+            if (previous != null)
+                Neurons.ForEach(n => previous.Neurons.ForEach(p => _ = new Synapse(p, n)));
+        }
+    }
+    private Layer? previous;
+    /// <summary>
+    /// 下一层
+    /// </summary>
+    public Layer? Next { get; set; }
+    /// <summary>
+    /// 本层的神经元
+    /// </summary>
+    public Neuron[] Neurons { get; private set; }
+    public IEnumerator<Neuron> GetEnumerator()
+    {
+        return ((IEnumerable<Neuron>)Neurons).GetEnumerator();
+    }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return Neurons.GetEnumerator();
+    }
+}
+```
+    </TabItem>
+    <TabItem value='网络' label='Network.cs'>
+
+```csharp
+public class NetWork
+{
+    public static Random Rand = new();
+    public NetWork()
+    {
+        Layers = new();
+    }
+    public List<Layer> Layers { get; set; }
+    /// <summary>
+    /// 输入层
+    /// </summary>
+    public Layer Input => Layers.First();
+    /// <summary>
+    /// 输出层
+    /// </summary>
+    public Layer Output => Layers.Last();
+    /// <summary>
+    /// 添加一层网络
+    /// </summary>
+    /// <param name="size">神经元数量</param>
+    /// <param name="actFun">激活函数</param>
+    /// <returns></returns>
+    public NetWork AddLayer(int size, IActivationFunction actFun)
+    {
+        // 如果添加了第一层, 直接进行初始化即可
+        if (Layers.IsEmpty())
+            Layers.Add(new Layer(size, actFun));
+        // 如果是之后的层, 则需要将前后两次进行连接
+        else
+        {
+            var previous = Output;
+            Layers.Add(new Layer(size, actFun));
+            // 连接前后两次神经元
+            Output.Previous = previous;
+            previous.Next = Output;
+        }
+        return this;
+    }
+    public IEnumerable<double> Forward(double[] inputs)
+    {
+        Input.SelectWithIndex().ForEach(i => i.value.Value = inputs[i.index]);
+        return Output.Select(i => i.GetValue()).ToList();
+    }
+    public void Back(double[] target, double lr)
+    {
+        // 计算所有神经元的梯度, GetGradient 内部有递归处理
+        Output.SelectWithIndex().ForEach(kv => kv.value.GetGradient(target[kv.index]));
+        // 先将网络反过来
+        Layers.Reverse();
+        // 然后从后完全一层一层更新偏置和权重
+        Layers.ForEach(i => i.ForEach(ii => ii.UpdateWeight(lr)));
+        // 更新完成之后再度翻转, 使得网络恢复原状
+        Layers.Reverse();
+    }
+    public double GetError(double[] target) => Output.SelectWithIndex().Sum(i => i.value.GetError(target[i.index]));
+    /// <summary>
+    /// 使用统一的随机数生成, 便于通过种子固定
+    /// </summary>
+    /// <returns></returns>
+    public static double GetRandom() => Rand.NextDouble() / 10;
+    /// <summary>
+    /// 设置随机数种子
+    /// </summary>
+    /// <param name="seed"></param>
+    public void SetRandSeed(int seed) => Rand = new Random(seed);
+}
+```
+    </TabItem>
+</Tabs>
+
+
+
+
+
+
