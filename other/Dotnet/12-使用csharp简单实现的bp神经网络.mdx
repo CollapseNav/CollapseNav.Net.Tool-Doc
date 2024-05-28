@@ -79,7 +79,7 @@ public class Synapse
 
 ## 激活函数(ActivationFunction)
 
-前几层的神经元在计算时需要过一次非线性的激活函数, 使其可以处理现实中的复杂问题, 虽然有 sigmoid 这样的经典, 但我觉得这边还是用简单并且计算量更少的 Relu 比较好
+前几层的神经元在计算时需要过一次非线性的激活函数, 使其可以处理现实中的复杂问题, 虽然有 sigmoid 这样的经典激活函数, 但这边还是用更加简单并且计算量更少的 Relu
 
 ![relu](/img/bpnn/relu.webp)
 
@@ -128,7 +128,7 @@ public class Neuron
 }
 ```
 
-为了让更加符合神经网络的定义, 下面再加上 `Layer` 和 `Network` 结构的简单定义
+为了更加符合神经网络的定义, 下面再附上 `Layer` 和 `Network` 结构的简单定义
 
 ```csharp
 public class Layer : IEnumerable<Neuron>
@@ -172,7 +172,7 @@ public class NetWork
 
 在设置好神经网络 `Input` 层神经元的 `Value` 后, 调用神经网络 `Output` 层每个神经元的 `GetValue` 即可获得整个网络的输出
 
-这个过程被称为 `前向传播(Forward)`, 所以可以在 `Network` 中实现该方法
+这个过程被称为 `前向传播(Forward)`, 可以在 `Network` 中实现该方法
 
 ```csharp
 public class NetWork
@@ -208,7 +208,7 @@ public class NetWork
 
 因此我们需要在输出之后计算输出值与正确值的误差, 然后将这个误差一层一层反向传播回去, 根据这个误差一点一点调整权重
 
-更新权重的第一步就是先计算输出与实际值的误差, 为了简化计算, 我们可以直接使用最简单的相减之后的差值作为误差
+所以第一步就是算出误差, 为了简化计算, 我们可以直接使用最简单的相减之后的差值作为误差
 
 ```csharp
 public class Neuron
@@ -305,7 +305,7 @@ public class Neuron
 
 在此需要引入 **学习率**(learning rate) 的概念
 
-之前的梯度代表方向, 学习率则代表了步长
+之前的梯度代表参数变化的方向, 学习率则代表了每一次的步长
 
 ![learning rate](/img/bpnn/lrate.webp)
 
@@ -383,7 +383,6 @@ netWork.Back(new double[] { 23 });
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-
 
 <Tabs>
 
@@ -586,7 +585,31 @@ public class Neuron
     /// </summary>
     public List<Synapse> Outputs { get; set; }
 }
+
 ```
+
+:::tip
+默认的权重更新算法可能会有点慢, 这个时候可以考虑加一点 动量(Momentum) 加快误差下降
+:::
+
+```csharp
+public void UpdateWeight(double lr, double mont = 1)
+{
+    // 计算系数
+    var BiasDelta = lr * Gradient;
+    // 调整神经元的偏置
+    Bias += BiasDelta;
+    foreach (var synapse in Inputs)
+    {
+        // 更新突触权重
+        var preDelta = synapse.WeightDelta;
+        synapse.WeightDelta = BiasDelta * synapse.Input.Value;
+        // 使用上一次的变化量和动量加快收敛
+        synapse.Weight += synapse.WeightDelta + preDelta * mont;
+    }
+}
+```
+
     </TabItem>
     <TabItem value='突触' label='Synapse.cs'>
 ```csharp
