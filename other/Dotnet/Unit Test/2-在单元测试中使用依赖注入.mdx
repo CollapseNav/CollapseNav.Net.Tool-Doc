@@ -1,0 +1,73 @@
+---
+title: 在单元测试中使用依赖注入
+sidebar_position: 2
+---
+
+众所周知, 当 dotnet 迈入新时代之后, dotnet开发者没有依赖注入就不会写代码了
+
+很多时候正式的使用场景中, 对象都是通过依赖注入创建的, 不然光是构建对象就需要耗费很多精力
+
+所以这个时候在单元测试中引入依赖注入可以更加方便地测试代码, 同时也可以让测试代码更加贴近实际使用场景
+
+本文将介绍如何在单元测试中使用依赖注入
+
+## 准备添加新的包
+
+在开始之前, 我们需要先添加一个新的 nuget 包
+
+在通过 `dotnet new xunit -n testproject` 创建一个名为 `testproject` 的单元测试项目之后
+
+在项目的目录下执行以下命令添加 nuget 包
+
+```shell
+dotnet add package Xunit.DependencyInjection --version 9.3.0
+```
+
+包 `Xunit.DependencyInjection` 是一个扩展包, 它可以帮助我们在单元测试中使用依赖注入
+
+## 添加Startup
+
+默认情况下需要提供一个 `Startup` 类, 用于配置依赖注入
+
+在 `testproject` 目录下创建一个名为 `Startup.cs` 的文件
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+namespace testproject;
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        // 注册依赖
+        services.AddScoped<TestService>();
+    }
+}
+// 一个简单的 TestService 类
+public class TestService(string name = "TestService")
+{
+    public string Name { get; } = name;
+}
+```
+
+在 `ConfigureServices` 方法中, 我们注册 `TestService` 类, 然后就可以在单元测试中通过依赖注入获取到 `TestService` 实例
+
+## 添加测试类
+
+```csharp
+namespace testproject;
+public class UnitTest1
+{
+    private readonly TestService testService;
+    public UnitTest1(TestService testService)
+    {
+        this.testService = testService;
+    }
+    [Fact]
+    public void Test1()
+    {
+        Assert.Equal("TestService", testService.Name);
+    }
+}
+```
+
+以上就是通过依赖注入在单元测试中获取到 `TestService` 实例的完整代码
