@@ -19,7 +19,7 @@ bp神经网络的结构如上图所示, 包括输入层, 隐藏层和输出层
 
 ![neuron](/img/bpnn/neuron.webp)
 
-一般来说一个神经元有以上组成部分
+一般来说一个神经元的计算需要由以上组成部分参与
 
 其结构用代码表示大概就是下面这样
 
@@ -57,7 +57,7 @@ public class Neuron
 
 ![synapse](/img/bpnn/synapse.webp)
 
-突触的结构相比神经元来说就非常简单了, 只有前后两个神经元和这条连接的对应权重
+突触的结构相比神经元来说就非常简单了, 只有前后两个神经元和这条连接的对应权重, 毕竟突触的作用也就是连接前后两个神经元
 
 ```csharp
 public class Synapse
@@ -79,7 +79,13 @@ public class Synapse
 
 ## 激活函数(ActivationFunction)
 
-前几层的神经元在计算时需要过一次非线性的激活函数, 使其可以处理现实中的复杂问题, 虽然有 sigmoid 这样的经典激活函数, 但这边还是用更加简单并且计算量更少的 Relu
+前几层的神经元在计算时需要过一次非线性的激活函数, 使其可以处理现实中的复杂问题
+
+如果使用的是线性激活函数, 不管网络有多少层, 最终的输出还是一个线性的结果, 可能只适用于拟合直线之类的简单问题
+
+而实际中我们需要通过神经网络处理的大多都是一些非线性的复杂问题, 因此需要引入非线性的激活函数来提高神经网络的表达能力
+
+虽然有 sigmoid 这样的经典激活函数, 但这边还是用更加简单并且计算量更少的 Relu 作为演示, 方便代码的编写和理解
 
 ![relu](/img/bpnn/relu.webp)
 
@@ -105,7 +111,7 @@ public class ReLu : IActivationFunction
 
 神经元接受上一层神经元的输出加权求和, 然后通过激活函数和偏置之后计算出自己的输出, 提供给下一层
 
-因此在神经元中可以定义一个 `GetValue` 方法用于计算
+因此我在神经元中定义一个 `GetValue` 方法用于计算自己的输出
 
 ```csharp
 public class Neuron
@@ -198,13 +204,13 @@ public class NetWork
 
 `Forward` 接收一组输入值, 前向传播计算完成之后返回最后一层的输出
 
+## 反向传播
+
 :::note
 以上的内容是神经网络的前向传播, 接下来介绍下最重要的反向传播(Backward)
 :::
 
-## 反向传播
-
-反向传播(Backward)是神经网络中一个非常重要的概念, 虽然网络可以通过前向传播用输入计算输出, 但是其中的权重等参数都是随机的, 几乎不可能正好随机出一组可以拟合数据集的权重
+反向传播(Backward)是神经网络中一个非常重要的概念, 虽然网络可以通过前向传播计算输出, 但是其中的权重等参数都是随机的, 几乎不可能正好随机出一组可以拟合数据集的权重
 
 因此我们需要在输出之后计算输出值与正确值的误差, 然后将这个误差一层一层反向传播回去, 根据这个误差一点一点调整权重
 
@@ -243,7 +249,7 @@ netWork.GetError(new double[] { 23 });
 
 当完成误差计算之后, 我们需要做的就是想办法将这个误差从输出层一层一层反向传播回去, 并且在传播过程中同步更新神经元的偏置(Bias)和突触的权重(Weight)
 
-所以此时我们需要计算的就是偏置和权重应该有的 **偏移量**, 这两个值都是浮点数, 要么变大要么变小, 难点在于确定向什么方向偏移
+所以之后我们需要计算的就是偏置和权重应该有的 **偏移量**, 这两个值都是浮点数, 要么变大要么变小, 难点在于确定向什么方向偏移
 
 在这种情况下我们可以引入梯度(Gradient)这个东西, 偏置和权重可以根据梯度的方向进行调整
 
@@ -251,11 +257,11 @@ netWork.GetError(new double[] { 23 });
 
 ![x=y](/img/bpnn/y=x.webp)
 
-看起来就是函数上某个点的切线, 计算梯度时需要带入激活函数的偏导数进行计算
+从表现上来看就是函数上某个点的切线, 在实际问题中的函数大多不会是这么简单的
 
 ![relu](/img/bpnn/relu.webp)
 
-之前选择Relu的一个原因就是偏导数非常容易计算, 大于0时为1, 小于0时为0, 对于计算来说非常方便
+一般而言计算梯度时需要带入激活函数的偏导数进行计算, 之前选择Relu的一个原因就是其偏导数非常容易计算, 大于0时为1, 小于0时为0
 
 ```csharp
 public class ReLu : IActivationFunction
@@ -265,6 +271,8 @@ public class ReLu : IActivationFunction
     public static ReLu Instance = new ReLu();
 }
 ```
+
+由此添加一个 `GetGradient` 用于获取梯度
 
 ```csharp
 public class Neuron
@@ -305,7 +313,7 @@ public class Neuron
 
 在此需要引入 **学习率**(learning rate) 的概念
 
-之前的梯度代表参数变化的方向, 学习率则代表了每一次的步长
+梯度代表参数变化的方向, 学习率则代表了每一次的步长
 
 ![learning rate](/img/bpnn/lrate.webp)
 
@@ -313,7 +321,7 @@ public class Neuron
 
 如果设置了合适的学习率, 每次迈出的步子不大不小, 梯度会渐渐下降到相对较低的值
 
-有了学习率和梯度, 相乘之后可以获得一个 **系数**, 偏置和权重的更新就依据这个 **系数** 进行变化
+有了学习率和梯度, 相乘之后可以获得一个 **权重变化量**, 偏置和权重的更新就依据这个 **权重变化量** 进行变化
 
 ```csharp
 public class Neuron
@@ -330,7 +338,7 @@ public class Neuron
     /// <param name="lr">学习率</param>
     public void UpdateWeight(double lr)
     {
-        // 计算系数
+        // 计算权重变化量
         var BiasDelta = lr * Gradient;
         // 调整神经元的偏置
         Bias += BiasDelta;
@@ -343,7 +351,7 @@ public class Neuron
 
 以上就是一个非常简单的权重更新算法
 
-然后我们需要在 `Network` 中打一套组合拳, 通过实际值先计算梯度, 然后反向传播更新偏置和权重
+然后我们需要在 `Network` 中将以上内容组合起来, 通过实际值先计算梯度, 然后反向传播更新偏置和权重
 
 
 ```csharp
@@ -360,7 +368,7 @@ public class NetWork
         Output.SelectWithIndex().ForEach(kv => kv.value.GetGradient(target[kv.index]));
         // 先将网络反过来
         Layers.Reverse();
-        // 然后从后完全一层一层更新偏置和权重
+        // 然后从后往前一层一层更新偏置和权重
         Layers.ForEach(i => i.ForEach(ii => ii.UpdateWeight(lr)));
         // 更新完成之后再度翻转, 使得网络恢复原状
         Layers.Reverse();
@@ -425,7 +433,7 @@ var targetError = 1e-3;
 // 随机数种子
 var seed = 0;
 
-// 减少运算量, 每次只取十分之一进行计算
+// 减少运算量, 每次只取十分之一进行计算(实际上没啥用，只是为了节省时间)
 var count = train.Count / 10;
 
 // 构建网络并且设置随机种子
@@ -570,7 +578,7 @@ public class Neuron
     /// <param name="lr"></param>
     public void UpdateWeight(double lr)
     {
-        // 计算系数
+        // 计算权重变化量
         var BiasDelta = lr * Gradient;
         // 调整神经元的偏置
         Bias += BiasDelta;
@@ -597,7 +605,7 @@ public class Neuron
 ```csharp
 public void UpdateWeight(double lr, double mont = 1)
 {
-    // 计算系数
+    // 计算权重变化量
     var BiasDelta = lr * Gradient;
     // 调整神经元的偏置
     Bias += BiasDelta;
