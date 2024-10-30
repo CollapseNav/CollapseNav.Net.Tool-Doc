@@ -81,13 +81,12 @@ for(var i = 0; i < 100; i++)
 第一种是写注释, 在需要高亮的行上面添加 `// highlight-next-line`
 
 ```
-    ```csharp
-    for(var i = 0; i < 100; i++)
-    {
-        // highlight-next-line
-        Console.WriteLine(i);
-    }
-    ```
+```csharp
+for(var i = 0; i < 100; i++)
+{
+    // highlight-next-line
+    Console.WriteLine(i);
+}
 ```
 
 ```csharp
@@ -101,14 +100,13 @@ for(var i = 0; i < 100; i++)
 如果需要高亮多行, 可以使用 `// highlight-start` 和 `// highlight-end`
 
 ```
-    ```csharp
-    for(var i = 0; i < 100; i++)
-    // highlight-start
-    {
-        Console.WriteLine(i);
-    }
-    // highlight-end
-    ```
+```csharp
+for(var i = 0; i < 100; i++)
+// highlight-start
+{
+    Console.WriteLine(i);
+}
+// highlight-end
 ```
 
 ```csharp
@@ -125,12 +123,11 @@ for(var i = 0; i < 100; i++)
 第二种是使用写在代码块外围的 metadata, 如果是单行的高亮, 可以使用如下写法
 
 ```
-    ```csharp {3}
-    for(var i = 0; i < 100; i++)
-    {
-        Console.WriteLine(i);
-    }
-    ```
+```csharp {3}
+for(var i = 0; i < 100; i++)
+{
+    Console.WriteLine(i);
+}
 ```
 
 ```csharp {3}
@@ -143,12 +140,11 @@ for(var i = 0; i < 100; i++)
 多行如下
 
 ```
-    ```csharp {2-4}
-    for(var i = 0; i < 100; i++)
-    {
-        Console.WriteLine(i);
-    }
-    ```
+```csharp {2-4}
+for(var i = 0; i < 100; i++)
+{
+    Console.WriteLine(i);
+}
 ```
 
 ```csharp {2-4}
