@@ -1,0 +1,37 @@
+---
+title: csharp的最小api
+sidebar_position: 13
+---
+
+C# 在 dotnet6 之后添加了 minimalapi, 这允许开发者只使用少量代码即可构建出一个可用的api程序
+
+## 创建项目
+
+可在命令行中执行以下代码创建项目
+```
+dotnet new webapi -minimal -n myapp
+```
+
+根据使用的sdk版本, 创建的项目模板可能会有所不同, 这边无需在意, 可将 `Program.cs` 里面的内容都删掉, 从头开始写起
+
+## 创建接口
+
+```csharp
+var app = WebApplication.CreateBuilder(args).Build();
+app.MapGet("/", () => "Hello, World!");
+app.Run();
+```
+
+简单三行即可在启动端口的根目录下直接创建一个简单的api接口, 启动程序后访问对应站点即可看到浏览器上输出的 `Hello, World!`
+
+在miniapi中可以非常简单地创建 restful api
+
+* `app.MapPost`
+* `app.MapDelete`
+* `app.MapPut`
+* `app.MapGet`
+
+可以通过以上的四个方法完成增删改查四种基本的restful操作
+
+
+
