@@ -33,5 +33,58 @@ app.Run();
 
 可以通过以上的四个方法完成增删改查四种基本的restful操作
 
+填入的参数都是一样的, 都是一个路由加一个委托, 用于匹配请求以及处理请求
+
+## 参数匹配
+
+由于miniapi接收的是委托类型的参数, 所以在定义参数时与之前常用的controller不同
+
+```csharp
+app.MapGet(route, ([FromQuery] string data) => data);
+```
+
+`[FromQuery]` 应该可以说是最基础的一种参数接收形式, 用于接收请求路径`?`之后的参数内容, 类似`getdata?data=123`, 委托中获取到的`data`就会是`123`
+
+不过有一点需要注意, 之前在 controller 中可以指定类型来接受多个参数, 比如`[FromQuery]InputData data`, 可以一次性接收多个参数, 但是在 miniapi 中不能直接这么使用, `InputData`必须要有将 `string` 类型的参数字符串转换为 `InputData` 的 `TryPrase` 方法, 这样就显得尤为麻烦
+
+因此如果想要通过 `[FromQuery]` 接收多个参数, 最好还是将参数拆开定义
+
+```csharp
+app.MapGet(route, ([FromQuery] string data, [FromQuery] int num) => $@"{data}:{num}");
+```
+
+
+
+`[FromBody]` 的用法和以前没啥区别, 还是一样的非常方便
+
+```csharp
+app.MapPost(route, ([FromBody] InputData data) => $@"{data.Data}:{data.Num}");
+public class InputData
+{
+    public string Data { get; set; }
+    public string Num { get; set; }
+}
+```
+
+## 使用依赖注入
+
+众所周知在现在的dotnet中, 依赖注入是必不可少的, 在miniapi中也没有缺席
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSingleton(new Config { Data = "233" });
+...
+app.MapPost(route, ([FromServices] Config config) => config.Data);
+
+public class Config
+{
+    public string Data { get; set; }
+}
+```
+
+在委托的参数列表里可以使用 `[FromServices]` 从依赖注入容器中获取注册过的实例, 这点和以前的 controller 模式略有区别
+
+不过在接口数量比较多的时候这种传参方式可能就没有那么方便了
+
 
 
