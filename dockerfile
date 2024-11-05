@@ -1,4 +1,4 @@
-FROM node:lts-alpine as initnode
+FROM node:20-alpine as initnode
 WORKDIR /src
 COPY ./package.json ./package.json
 RUN yarn config set registry https://registry.npmmirror.com/ && yarn install
