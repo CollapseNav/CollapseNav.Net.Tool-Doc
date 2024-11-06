@@ -17,6 +17,10 @@ const config = {
   markdown: {
     mermaid: true
   },
+  i18n: {
+    defaultLocale: 'zh-CN',
+    locales: ['zh-CN'],
+  },
   plugins: [
     [
       'content-docs',
