@@ -5,9 +5,9 @@ import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'CollapseNav',
-  tagline: '我觉得可以提升(我自己的)开发效率的dotnet工具包',
-  url: 'https://your-docusaurus-test-site.com',
+  title: 'CollapseNav个人小站',
+  tagline: '',
+  url: 'https://doc.collapsenav.com',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
