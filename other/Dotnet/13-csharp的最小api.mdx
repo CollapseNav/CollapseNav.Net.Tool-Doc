@@ -3,7 +3,7 @@ title: csharp的最小api
 sidebar_position: 13
 ---
 
-C# 在 dotnet6 之后添加了 minimalapi, 这允许开发者只使用少量代码即可构建出一个可用的api程序
+C# 在 dotnet6 之后添加了 minimalapi, 这允许开发者只需使用少量代码即可构建出一个可用的api程序
 
 ## 创建项目
 
@@ -12,17 +12,66 @@ C# 在 dotnet6 之后添加了 minimalapi, 这允许开发者只使用少量代�
 dotnet new webapi -minimal -n myapp
 ```
 
-根据使用的sdk版本, 创建的项目模板可能会有所不同, 这边无需在意, 可将 `Program.cs` 里面的内容都删掉, 从头开始写起
+根据使用的sdk版本, 创建的项目模板可能会有所不同, 比如我在用的sdk版本是8.0.111, 模板中program.cs的内容如下:
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+
+var summaries = new[]
+{
+    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+};
+
+app.MapGet("/weatherforecast", () =>
+{
+    var forecast =  Enumerable.Range(1, 5).Select(index =>
+        new WeatherForecast
+        (
+            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+            Random.Shared.Next(-20, 55),
+            summaries[Random.Shared.Next(summaries.Length)]
+        ))
+        .ToArray();
+    return forecast;
+})
+.WithName("GetWeatherForecast")
+.WithOpenApi();
+
+app.Run();
+
+record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+{
+    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+}
+```
+
+上面创建了一个返回列表的接口, 不过这些代码对于讲解来说还是有点多余, 可将 `Program.cs` 里面的内容都删掉, 从头开始写起
 
 ## 创建接口
 
-```csharp
+```csharp {2}
 var app = WebApplication.CreateBuilder(args).Build();
 app.MapGet("/", () => "Hello, World!");
 app.Run();
 ```
 
-简单三行即可在启动端口的根目录下直接创建一个简单的api接口, 启动程序后访问对应站点即可看到浏览器上输出的 `Hello, World!`
+其实只需要三行即可在启动端口的根目录下直接创建一个api接口, 启动程序后访问对应站点即可看到浏览器上输出的 `Hello, World!`
 
 在miniapi中可以非常简单地创建 restful api
 
@@ -31,9 +80,7 @@ app.Run();
 * `app.MapPut`
 * `app.MapGet`
 
-可以通过以上的四个方法完成增删改查四种基本的restful操作
-
-填入的参数都是一样的, 都是一个路由加一个委托, 用于匹配请求以及处理请求
+通过以上的四个方法可以完成增删改查四种基本的restful操作
 
 ## 参数匹配
 
@@ -43,9 +90,9 @@ app.Run();
 app.MapGet(route, ([FromQuery] string data) => data);
 ```
 
-`[FromQuery]` 应该可以说是最基础的一种参数接收形式, 用于接收请求路径`?`之后的参数内容, 类似`getdata?data=123`, 委托中获取到的`data`就会是`123`
+`[FromQuery]` 可以说是最基础的一种参数接收形式, 用于接收请求路径`?`之后的参数内容, 例如`http://{host}:{port}/getdata?data=123`, 委托中获取到的`data`就会是`123`
 
-不过有一点需要注意, 之前在 controller 中可以指定类型来接受多个参数, 比如`[FromQuery]InputData data`, 可以一次性接收多个参数, 但是在 miniapi 中不能直接这么使用, `InputData`必须要有将 `string` 类型的参数字符串转换为 `InputData` 的 `TryPrase` 方法, 这样就显得尤为麻烦
+不过有一点需要注意, 之前在 controller 中可以指定自定义类型来接受多个参数, 比如`[FromQuery]InputData data`这种的, 可以一次性接收多个参数, 但是在 miniapi 中不能直接这么使用, `InputData`必须要有将 `string` 类型的参数字符串转换为 `InputData` 的 `TryPrase` 方法, 这样就显得尤为麻烦
 
 因此如果想要通过 `[FromQuery]` 接收多个参数, 最好还是将参数拆开定义
 
@@ -53,9 +100,7 @@ app.MapGet(route, ([FromQuery] string data) => data);
 app.MapGet(route, ([FromQuery] string data, [FromQuery] int num) => $@"{data}:{num}");
 ```
 
-
-
-`[FromBody]` 的用法和以前没啥区别, 还是一样的非常方便
+不过挺好的是 `[FromBody]` 的用法和以前没啥区别, 还是一样的非常方便
 
 ```csharp
 app.MapPost(route, ([FromBody] InputData data) => $@"{data.Data}:{data.Num}");
@@ -68,23 +113,19 @@ public class InputData
 
 ## 使用依赖注入
 
-众所周知在现在的dotnet中, 依赖注入是必不可少的, 在miniapi中也没有缺席
+众所周知在现在的dotnet中, 依赖注入(DI)是必不可少的, 虽然 miniapi 很简单, 但并没有缺席
 
-```csharp
+```csharp {4}
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton(new Config { Data = "233" });
 ...
 app.MapPost(route, ([FromServices] Config config) => config.Data);
-
+app.Run();
 public class Config
 {
     public string Data { get; set; }
 }
 ```
 
-在委托的参数列表里可以使用 `[FromServices]` 从依赖注入容器中获取注册过的实例, 这点和以前的 controller 模式略有区别
-
-不过在接口数量比较多的时候这种传参方式可能就没有那么方便了
-
-
+在委托的参数列表里可以使用 `[FromServices]` 从依赖注入容器中获取注册过的实例
 
