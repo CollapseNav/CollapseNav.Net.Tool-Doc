@@ -1,0 +1,143 @@
+---
+title: Docker的镜像
+sidebar_position: 1
+---
+
+镜像(Image) 和 容器(Container) 是 Docker 最基本的概念, 也是我们日常在使用 Docker 时最常接触到的, 这一节就简单介绍下 Docker 的镜像和一些简单的操作
+
+Docker镜像是一种特殊的只读的文件系统, 提供了运行时所需要使用的程序、库、配置、环境变量和其他一些必要的资源, 更像是一种预制的模板
+
+Docker镜像是分层的, 在其构建的时候会先有一层基础镜像, 然后在其上进行一系列的操作, 最终形成一个新的镜像, 覆盖在之前的镜像之上, 由于每一层都是镜像, 所以每层镜像在构建完成之后都是只读的不可改变的, 这些"**层**"可以在不同镜像之间进行共享, 资源利用率极高
+
+## 镜像的拉取
+
+Docker 镜像的命名规则大致上是 `{仓库名}/{镜像名}:{标签}`
+
+比如我要拉取一个 nginx 镜像, 镜像名称是 `docker.io/library/nginx:latest`, 其中的`仓库名`为 `docker.io/library`, `镜像名`为 `nginx`, `标签`为 `latest`
+
+```bash
+docker pull docker.io/library/nginx:latest
+```
+
+不过在使用docker时默认拉取的都是官方仓库的镜像, 所以 `docker.io` 可以省略, nginx 镜像也收在官方仓库里, 所以 `library` 也可以省略, 如果对于nginx的版本没有什么特别的要求, 最后的标签部分也可以直接省略, 最终的命令可以简化为
+
+```bash
+docker pull nginx
+```
+
+如果需要根据不同的情况使用不同的镜像版本, 那么还是到镜像仓库上去查一下对应的tag
+
+## 列出镜像
+
+拉取镜像之后可以通过 `docker images` 或者 `docker image ls` 命令来查看本地已经有的镜像
+
+```bash
+docker images
+docker image ls
+```
+
+```bash
+REPOSITORY   TAG       IMAGE ID       CREATED       SIZE
+nginx        latest    60c8a892f36f   6 weeks ago   192MB
+```
+
+如果有同名的不同tag的镜像, 则会显示多个, 比如我再拉取一个 nginx 的 alpine 版本的镜像, 执行命令之后就会显示两个
+
+```bash
+REPOSITORY   TAG       IMAGE ID       CREATED       SIZE
+nginx        latest    60c8a892f36f   6 weeks ago   192MB
+nginx        alpine    a5967740120f   6 weeks ago   52.5MB
+```
+
+镜像会占用部分磁盘空间, 但是实际的占用空间可能会比显示的稍微小一点
+
+之前就讲到了, Docker 镜像是分层的, 而这些层是可以共享的, 这两个镜像属于 nginx 的部分共用了相同的层, 这就省下了一层空间
+
+:::tip
+镜像越多占用越少
+
+镜像越多则层越多, 层越多则共享层越多, 共享层越多则所占用空间越小, 所以镜像越多占用越少
+:::
+
+
+如果想要知道具体的占用, 可以使用 `docker system df` 命令
+
+```bash
+docker system df
+```
+
+```bash
+TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
+Images          11        2         1.047GB   812.9MB (77%)
+Containers      2         1         0B        0B
+Local Volumes   1         0         454.4kB   454.4kB (100%)
+Build Cache     0         0         0B        0B
+```
+
+也可以加上 `-v` 参数查看更加具体的磁盘占用情况
+
+```bash
+docker system df -v
+```
+
+### 对列出镜像进行筛选
+
+如果直接使用 `docker images` 或者 `docker image ls` 命令, 会列出所有镜像, 但有的时候我们想要只列出部分镜像, 比如只列出 nginx 镜像
+
+```bash
+docker images nginx
+docker image ls nginx
+```
+
+```bash
+REPOSITORY   TAG       IMAGE ID       CREATED       SIZE
+nginx        latest    60c8a892f36f   6 weeks ago   192MB
+nginx        alpine    a5967740120f   6 weeks ago   52.5MB
+```
+
+有时我们并不需要这么多信息, 此时可以通过 `--format` 对输出进行格式化
+
+```bash
+docker images nginx --format "{{.ID}} \t{{.Repository}}:{{.Tag}}"
+```
+
+```bash
+a5967740120f    nginx:alpine
+60c8a892f36f    nginx:latest
+```
+
+这里格式化时可以根据自己的实际需要选择以下参数
+
+| 参数 | 含义 |
+|-|-|
+|.ID|镜像ID|
+|.Repository|镜像名称|
+|.Tag|镜像标签|
+|.Digest|镜像摘要|
+|.CreatedSince|自创建映像以来经过的时间|
+|.CreatedAt|创建映像的时间|
+|.Size|镜像大小|
+
+## 镜像删除
+
+如果想要删除本地的镜像, 可以使用 `docker rmi` 命令
+
+```bash
+docker rmi nginx:latest
+```
+
+如果想要删除多个镜像, 可以使用 `docker rmi` 命令一次性删除多个镜像
+
+```bash
+docker rmi nginx:latest nginx:alpine
+```
+
+除了使用指定的名称, 也可以直接使用对应镜像的 ID 来删除
+
+如果镜像太多的话, 可以组合之前提到的列出镜像的命令
+
+```bash
+docker image rmi $(docker images nginx --format "{{.ID}}")
+```
+
+这样就可以一次性删除所有 nginx 镜像了

@@ -1,0 +1,22 @@
+---
+title: Docker的安装
+sidebar_position: 0
+---
+
+这边简单介绍一下如何安装Docker
+
+在网络上搜索各种 Docker 安装教程, 经常会看到各种教你如何用 apt 或者 yum 之类的方法进行安装, 但实际上[docker官方](https://docs.docker.com/engine/install/ubuntu/#install-using-the-convenience-script)已经提供了安装脚本, 直接运行即可安装成功
+
+```shell
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+```
+
+这边还是推荐直接使用官方安装脚本安装, 因为各种不同的系统都会有不同的安装方式, 不如直接解放双手和大脑
+
+执行完成之后使用以下命令即可验证安装的docker版本
+
+```shell
+docker version
+```
+

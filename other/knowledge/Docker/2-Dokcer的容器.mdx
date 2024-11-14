@@ -1,0 +1,51 @@
+---
+title: Docker的容器
+sidebar_position: 2
+---
+
+镜像(Image) 和 容器(Container) 是 Docker 最基本的概念, 上一节已经简单介绍了一下镜像, 这一节再把容器的部分补上
+
+Docker 的容器是运行时的一个实列, 其通过镜像创建, 两者之间的关系有点像 OOP 中的 `类` 和 `实例` 的关系, 容器可以被启动, 停止, 重启, 复制, 或者删除等操作
+
+Docker 的容器看起来像是一个虚拟机, 但其本质上还是宿主机执行的一个进程, 只不过拥有独属于自己的命名空间, 可以视作和原来的环境是隔离的
+
+Docker 的容器和镜像一样也是分层的, 相当于是将镜像作为基础层, 然后再之上加了一个数据层, 用于存储在容器运行过程中产生的数据以及其他杂七杂八的变更
+
+## 创建容器
+
+可以使用 `docker create` 命令创建容器, 其语法如下
+
+```shell
+docker create --name aname nginx:alpine
+```
+
+不过这种方式一般没啥人用, 因为一般都是通过 `docker run` 命令来创建容器, 其会自动创建并启动容器, 非常方便快捷省事
+
+```shell
+docker run --name aname nginx:alpine
+```
+
+按照以上命令创建并且启动容器之后可以看到nginx程序启动时的输出信息, 这些都是容器的输入内容
+
+## 列出容器
+
+在创建完容器之后我们可以通过 `ps` 命令来查看当前运行的容器
+
+```shell
+docker ps
+```
+
+```shell
+CONTAINER ID   IMAGE             COMMAND      CREATED        STATUS      PORTS     NAMES
+```
+
+不过 `ps` 命令只能看到当前运行的容器, 如果想要查看所有容器, 可以使用 `docker ps -a` 命令
+
+```shell
+docker ps -a
+```
+
+```shell
+CONTAINER ID   IMAGE                       COMMAND                   CREATED         STATUS                      PORTS                    NAMES
+6ba2202366f4   nginx:alpine                "/docker-entrypoint.…"   3 minutes ago   Exited (0) 2 minutes ago                             aname
+```
