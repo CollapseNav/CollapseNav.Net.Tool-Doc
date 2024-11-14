@@ -113,7 +113,7 @@ public class InputData
 
 ## 使用依赖注入
 
-众所周知在现在的dotnet中, 依赖注入(DI)是必不可少的, 虽然 miniapi 很简单, 但并没有缺席
+众所周知在现在的dotnet中, 依赖注入(DI)是必不可少的, 虽然 miniapi 很简单, 但还是可以正常用上的
 
 ```csharp {4}
 var builder = WebApplication.CreateBuilder(args);
@@ -129,3 +129,12 @@ public class Config
 
 在委托的参数列表里可以使用 `[FromServices]` 从依赖注入容器中获取注册过的实例
 
+:::tip
+其实在 controller 中也可以使用这种方式注入实例, 只不过在正常情况下一般还是用构造函数注入, 但 miniapi 中只能用这种方式
+:::
+
+这种注入方式讲究的就是用啥注入啥, 但是在业务复杂并且需要注入的实例数量比较多的时候, 委托的参数列表就会显得太过冗长, 如果接口数量也同时上升, 那么重复注入的情况就会出现很多次, 这种情况下可能就不如 controller 方便了
+
+## 总结
+
+miniapi 虽然能满足一些简单的需求, 但对于复杂的业务, 还是建议使用 controller 来实现
