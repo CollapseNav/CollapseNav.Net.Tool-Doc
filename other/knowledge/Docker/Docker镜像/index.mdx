@@ -56,7 +56,7 @@ nginx        alpine    a5967740120f   6 weeks ago   52.5MB
 :::tip
 镜像越多占用越少
 
-镜像越多则层越多, 层越多则共享层越多, 共享层越多则所占用空间越小, 所以镜像越多占用越少
+镜像越多则层越多, 层越多则共享层越多, 共享层越多则所占用空间越小, 所以镜像越多占用越少😏
 :::
 
 
@@ -95,6 +95,8 @@ nginx        latest    60c8a892f36f   6 weeks ago   192MB
 nginx        alpine    a5967740120f   6 weeks ago   52.5MB
 ```
 
+### 格式化输出
+
 有时我们并不需要这么多信息, 此时可以通过 `--format` 对输出进行格式化
 
 ```bash
@@ -118,6 +120,20 @@ a5967740120f    nginx:alpine
 |.CreatedAt|创建映像的时间|
 |.Size|镜像大小|
 
+### 只输出镜像ID
+
+根据上面的格式化输出, 如果只需要输出镜像ID, 可以使用 `--format "{{.ID}}"`
+
+```bash
+docker images nginx --format "{{.ID}}"
+```
+
+实际上docker本身也提供了一种更加简单的命令, 可以直接输出镜像ID
+
+```bash
+docker images nginx -q
+```
+
 ## 镜像删除
 
 如果想要删除本地的镜像, 可以使用 `docker rmi` 命令
@@ -140,4 +156,9 @@ docker rmi nginx:latest nginx:alpine
 docker image rmi $(docker images nginx --format "{{.ID}}")
 ```
 
+```bash
+docker image rmi $(docker images nginx -q)
+```
+
 这样就可以一次性删除所有 nginx 镜像了
+

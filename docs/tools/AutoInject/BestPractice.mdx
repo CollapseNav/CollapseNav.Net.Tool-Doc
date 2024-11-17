@@ -14,6 +14,7 @@ sidebar_position: 1
 ## 简单的注册代码
 
 以下是最简陋的情况下的注册代码
+
 ```csharp
 using Collapsenav.Net.Tool.AutoInject;
 
@@ -29,6 +30,7 @@ var app = builder.Build();
 app.MapControllers();
 app.Run();
 ```
+
 :::note
 使用 `builder.Host.UseAutoInjectProviderFactory()` 替换默认的工厂实现, 可以提供 **属性注入** 功能
 

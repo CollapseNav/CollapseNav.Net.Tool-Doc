@@ -1,0 +1,120 @@
+---
+title: 查看镜像信息
+sidebar_position: 1
+---
+
+Docker提供了一个非常好用的 `inspect` 命令来查看镜像的详细信息, 与之前提到的 `docker images` 命令不一样, 那个只能列出有什么镜像, 只能看到一些非常简单的表面的信息, 而 `inspect` 命令可以查看包括镜像的ID, 标签, 父镜像, 容器的配置, 卷, 环境变量等更加详细的信息。
+
+```bash
+docker inspect nginx:alpine
+```
+
+```json
+[
+    {
+        "Id": "sha256:a5967740120f9a30029392fe9c47961962888cc48e6c4b47025b1f2b964ffbb6",
+        "RepoTags": [
+            "nginx:alpine"
+        ],
+        "RepoDigests": [
+            "nginx@sha256:74175cf34632e88c6cfe206897cbfe2d2fecf9bf033c40e7f9775a3689e8adc7"
+        ],
+        "Parent": "",
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2024-10-02T17:55:35Z",
+        "Container": "",
+        "ContainerConfig": {
+            "Hostname": "",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": null,
+            "Cmd": null,
+            "Image": "",
+            "Volumes": null,
+            "WorkingDir": "",
+            "Entrypoint": null,
+            "OnBuild": null,
+            "Labels": null
+        },
+        "DockerVersion": "",
+        "Author": "",
+        "Config": {
+            "Hostname": "",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "ExposedPorts": {
+                "80/tcp": {}
+            },
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "NGINX_VERSION=1.27.2",
+                "PKG_RELEASE=1",
+                "DYNPKG_RELEASE=1",
+                "NJS_VERSION=0.8.6",
+                "NJS_RELEASE=1"
+            ],
+            "Cmd": [
+                "nginx",
+                "-g",
+                "daemon off;"
+            ],
+            "ArgsEscaped": true,
+            "Image": "",
+            "Volumes": null,
+            "WorkingDir": "/",
+            "Entrypoint": [
+                "/docker-entrypoint.sh"
+            ],
+            "OnBuild": null,
+            "Labels": {
+                "maintainer": "NGINX Docker Maintainers <docker-maint@nginx.com>"
+            },
+            "StopSignal": "SIGQUIT"
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 52501524,
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/d488201d6059b2dc3d17b9eae1f4737d7eba57ba7c5dc061bffb67460b81a408/diff:/var/lib/docker/overlay2/2be2184ff85e9526d7d2d3aa53064bc9d7b5895b5a3074939bca63b1e5b5b8f1/diff:/var/lib/docker/overlay2/f6ee47c1818a217977738d0d151f3341fdaf653597fe5c14d255e3321b229c26/diff:/var/lib/docker/overlay2/0f089d0cf80af0c62b518f0578ded52712b3b59a90003aeee70623edc5d95164/diff:/var/lib/docker/overlay2/8668a4f924391b438bf0e91ec05d15b7939fdb57e1deeb7f6c9ebc2a06dc7378/diff:/var/lib/docker/overlay2/557c7ee9a3f0203d5c0087bd11325c0eeb1b29f891d94b1b20877096b16db0b4/diff:/var/lib/docker/overlay2/df7df17415ec42fcac026fbb9b2f91f86b8acfc07947b34377ce7d571f8b0c73/diff",
+                "MergedDir": "/var/lib/docker/overlay2/78e45d218d1fbaa5ba3f320cb621e7f1b95614aa9dd5cd450715b79ce6f4d860/merged",
+                "UpperDir": "/var/lib/docker/overlay2/78e45d218d1fbaa5ba3f320cb621e7f1b95614aa9dd5cd450715b79ce6f4d860/diff",
+                "WorkDir": "/var/lib/docker/overlay2/78e45d218d1fbaa5ba3f320cb621e7f1b95614aa9dd5cd450715b79ce6f4d860/work"
+            },
+            "Name": "overlay2"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:75654b8eeebd3beae97271a102f57cdeb794cc91e442648544963a7e951e9558",
+                "sha256:df75bb36e265a5515e9d56559c253f3ad8ac65f67b120ac17dc5d39e3650c1f9",
+                "sha256:ffe4285e29068b1a6112d99b633535058b91344bb1eac41cbec3c319c908cc43",
+                "sha256:3ca5de8f08eb9b673db2fd9c591abd69b1caa3d98ac0ebe383b4701a3ac75f8b",
+                "sha256:19d3bde9037c77ff30ef945e663bbcfffcbca10e80b79f46c916ae0da7e60a07",
+                "sha256:8d94d71d4b48c71f9a76bca8dcdf9b752dd604a0276b2047d6c8f748229cbb4d",
+                "sha256:1ce97418c44e80dc0051e16deb9966ee8a1579bbbbef9f19ef2a33a45648d6e3",
+                "sha256:b67a2e28b4c8ca1857c558050b6d525c5946ffbeeec03c383e7a6bad37c6cd4c"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "0001-01-01T00:00:00Z"
+        }
+    }
+]
+```
+
+输出的结果是一个JSON数组, 不过在日常使用的时候并没有太多需要关注的地方, 大多数情况下可能只需要注意一下 `Env` `ExposedPorts` 这样的字段, 其他的可能基本上不会用到
+
+

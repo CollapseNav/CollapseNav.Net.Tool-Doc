@@ -25,7 +25,7 @@ docker create --name aname nginx:alpine
 docker run --name aname nginx:alpine
 ```
 
-按照以上命令创建并且启动容器之后可以看到nginx程序启动时的输出信息, 这些都是容器的输入内容
+按照以上命令创建并且启动容器之后可以看到nginx程序启动时的输出信息, 那些都是容器的输入内容
 
 ## 列出容器
 
@@ -39,7 +39,7 @@ docker ps
 CONTAINER ID   IMAGE             COMMAND      CREATED        STATUS      PORTS     NAMES
 ```
 
-不过 `ps` 命令只能看到当前运行的容器, 如果想要查看所有容器, 可以使用 `docker ps -a` 命令
+不过 `ps` 命令只能看到当前运行的容器, 如果没有只在运行的容器, 那就啥都看不到, 想要查看所有容器, 可以使用 `docker ps -a` 命令
 
 ```shell
 docker ps -a
@@ -49,3 +49,42 @@ docker ps -a
 CONTAINER ID   IMAGE                       COMMAND                   CREATED         STATUS                      PORTS                    NAMES
 6ba2202366f4   nginx:alpine                "/docker-entrypoint.…"   3 minutes ago   Exited (0) 2 minutes ago                             aname
 ```
+
+这边可以看到, 我们刚才创建的容器 `aname` 已经存在了, 但是状态是已退出, 所以之前只是使用 `docker ps` 时无法查看到运行中的容器信息
+
+## 启动已停止的镜像
+
+上面我们可以看到 `aname` 容器状态已退出, 这时我们可以通过 `docker start` 命令来启动容器
+
+```shell
+docker start aname
+docker ps
+```
+
+```shell
+CONTAINER ID   IMAGE                       COMMAND                   CREATED        STATUS              PORTS     NAMES
+6ba2202366f4   nginx:alpine                "/docker-entrypoint.…"   2 days ago     Up About a minute   80/tcp    aname
+```
+
+:::tip
+其实也可以直接使用 `docker restart aname` 来重启容器, 效果是一样的, 而且在实际使用的时候 `restart` 可能会更加常用一点
+:::
+
+## 停止容器
+
+可以通过 `docker stop` 命令来停止容器
+
+```shell
+docker stop aname
+```
+
+## 删除容器
+
+当容器不再需要时, 可以通过 `docker rm` 命令来删除容器, 这个命令看起来和删除镜像很像, 不过 `rm` 命令是用来删除容器的, 而 `rmi` 命令是用来删除镜像的
+
+```shell
+docker rm aname
+```
+
+删除容器后会将容器在运行时生成的数据层也一起删除, 所以在删除容器之前最好先想清楚有没有需要保存下来的数据
+

@@ -1,0 +1,125 @@
+---
+title: 构建镜像
+sidebar_position: 2
+---
+
+前面介绍了Docker镜像的拉取删除等基本操作, 接下来介绍如何根据自己的需要使用 `nginx:alpine` 构建一个新的镜像, 在访问时返回一个 `Hello, Docker!` 页面.
+
+## 准备页面
+
+现在一个空的文件夹下创建一个 `index.html` 文件, 内容如下
+
+```html
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Docker Test</title>
+</head>
+
+<body>
+    <p>Hello, Docker!</p>
+</body>
+
+</html>
+```
+
+这是一个简单的用于输出 `Hello, Docker!` 页面的 HTML 文件
+
+## Dockerfile
+
+Docker 构建镜像的核心是 `Dockerfile`, 它是一个文本文件, 包含了一条一条的指令, 用于告诉 Docker 该如何一步一步构建镜像
+
+在 `index.html` 文件所在的目录下创建一个 `Dockerfile` 文件, 内容如下
+
+```Dockerfile
+FROM nginx:alpine
+COPY index.html /usr/share/nginx/html/index.html
+```
+
+在这样简单的需求下, `Dockerfile` 文件的内容很简单
+
+先使用 `FROM` 指令指定基础镜像, 表示我们将基于 `nginx:alpine` 镜像构建一个 nginx 服务
+
+然后再使用 `COPY` 指令复制 `index.html` 文件到 nginx 的默认目录 `/usr/share/nginx/html`, 并且覆盖掉原来的 `index.html` 文件
+
+这样的话当我们直接访问 nginx 服务时, 就会看到我们上面自己编写的 `index.html` 文件的内容
+
+## 构建镜像
+
+现在我们已经准备好了 `Dockerfile` 文件和 `index.html` 文件, 接下来就可以使用 `docker build` 命令来构建镜像了
+
+```bash
+docker build -t mynginx .
+```
+
+这里的命令分为三个部分
+
+- `docker build` 构建镜像
+- `-t` 给镜像打标签, 也可以简单地理解为起名字, 这里的标签名为 `mynginx`
+- `.` 表示在当前目录下进行构建, 如果执行构建时不在dockerfile所在目录, 可以在这儿指定路径
+
+执行完毕之后, 会构建一个叫做 `mynginx` 的镜像, 我们可以使用 `docker images` 命令查看
+
+```bash
+REPOSITORY                TAG                     IMAGE ID       CREATED          SIZE
+mynginx                   latest                  a03bd1048d3b   14 minutes ago   52.5MB
+```
+
+此时我们分别使用  `inspect` 命令查看 `mynginx` 镜像和基础的 `nginx:alpine` 镜像
+
+```shell
+docker inspect nginx:alpine mynginx
+```
+
+仔细查看这两个镜像信息中的 `RootFS.Layers` 部分
+
+```json title='nginx:alpine inspect.RootFS'
+"RootFS": {
+    "Type": "layers",
+    "Layers": [
+        "sha256:75654b8eeebd3beae97271a102f57cdeb794cc91e442648544963a7e951e9558",
+        "sha256:df75bb36e265a5515e9d56559c253f3ad8ac65f67b120ac17dc5d39e3650c1f9",
+        "sha256:ffe4285e29068b1a6112d99b633535058b91344bb1eac41cbec3c319c908cc43",
+        "sha256:3ca5de8f08eb9b673db2fd9c591abd69b1caa3d98ac0ebe383b4701a3ac75f8b",
+        "sha256:19d3bde9037c77ff30ef945e663bbcfffcbca10e80b79f46c916ae0da7e60a07",
+        "sha256:8d94d71d4b48c71f9a76bca8dcdf9b752dd604a0276b2047d6c8f748229cbb4d",
+        "sha256:1ce97418c44e80dc0051e16deb9966ee8a1579bbbbef9f19ef2a33a45648d6e3",
+        "sha256:b67a2e28b4c8ca1857c558050b6d525c5946ffbeeec03c383e7a6bad37c6cd4c"
+    ]
+}
+```
+
+```json title='mynginx inspect.RootFS'
+"RootFS": {
+    "Type": "layers",
+    "Layers": [
+        "sha256:75654b8eeebd3beae97271a102f57cdeb794cc91e442648544963a7e951e9558",
+        "sha256:df75bb36e265a5515e9d56559c253f3ad8ac65f67b120ac17dc5d39e3650c1f9",
+        "sha256:ffe4285e29068b1a6112d99b633535058b91344bb1eac41cbec3c319c908cc43",
+        "sha256:3ca5de8f08eb9b673db2fd9c591abd69b1caa3d98ac0ebe383b4701a3ac75f8b",
+        "sha256:19d3bde9037c77ff30ef945e663bbcfffcbca10e80b79f46c916ae0da7e60a07",
+        "sha256:8d94d71d4b48c71f9a76bca8dcdf9b752dd604a0276b2047d6c8f748229cbb4d",
+        "sha256:1ce97418c44e80dc0051e16deb9966ee8a1579bbbbef9f19ef2a33a45648d6e3",
+        "sha256:b67a2e28b4c8ca1857c558050b6d525c5946ffbeeec03c383e7a6bad37c6cd4c",
+        // highlight-next-line
+        "sha256:bf3366112afe1ed4d1ba58e8fad1a324d017509b552569b889701646d2b1f873"
+    ]
+}
+```
+
+可以看到 `mynginx` 镜像多了一个 `sha256:bf3366112afe1ed4d1ba58e8fad1a324d017509b552569b889701646d2b1f873` 层, 这就是我们通过编写 `Dockerfile` 构建的新层, 这一层包含了我们编写的 `index.html` 文件
+
+:::note
+这边算是之前镜像分层的一个补充内容了, 实操之后的表现应该会更加直观一点
+:::
+
+然后通过 [运行容器](../Docker容器/index.mdx#创建容器) 相关内容就可以看到更改了
+
+## 念念碎
+
+实际上 Dockerfile 里面可以使用的命令非常多, 一般我们能看到的那些复杂的大型镜像可能都是通过一些比较复杂的命令构建出来的, 涉及到的东西很多, 其中会出现的坑也非常多, 所以在这一篇里面就不做过多介绍了, 后面可能会专门在开一篇或者更多篇幅来进行讲解
+
+但是我自己知道的内容也不算太多, 只能想到啥写啥了
+
+
