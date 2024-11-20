@@ -1,5 +1,5 @@
 ---
-title: CI
+title: Drone-CI
 sidebar_position: 2
 ---
 
@@ -15,9 +15,19 @@ sidebar_position: 2
 
 我在这儿就介绍一下我的环境
 
-我使用的是 [gitea](https://gitea.io/zh-cn/) + [drone ci](https://www.drone.io/) 组合的cicd系统
+我使用的方案是 [gitea](https://gitea.io/zh-cn/) + [drone ci](https://www.drone.io/) 组合的cicd系统
 
-从功能上来说, gitlab 更强, 但是对硬件资源的要求也更高
+Gitea 是一个轻量级的 DevOps 平台软件, 从开发计划到产品成型的整个软件生命周期, 他都能够高效而轻松的帮助团队和开发者
+
+包括 Git 托管、代码审查、团队协作、软件包注册和 CI/CD, 它与 GitHub、Bitbucket 和 GitLab 等比较类似
+
+Gitea 最初是从 Gogs 分支而来, 几乎所有代码都已更改
+
+而 Drone-CI 是一个开源的 CI/CD 平台, 他可以与 Gitea 集成, 实现代码提交后自动构建、测试和部署
+
+Drone-CI 支持多种编程语言和工具, 可以通过配置文件定义构建流程, 并且与 Docker 集成地可以说是 **天衣无缝** 
+
+我放弃更加大众化的方案选择这个两个服务, 也是有现实原因的, 虽然从功能上来说 gitlab 更强, 但是对硬件资源的要求也更高
 
 现阶段我的服务大部分都部署在 **树莓派** 上, 内存有限, 并且性能相对也不高, 所以就没有考虑高资源消耗的方案
 
