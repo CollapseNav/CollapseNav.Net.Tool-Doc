@@ -32,13 +32,7 @@ steps:
         path: /var/run/docker.sock
     commands:
       - export containerid=$(docker inspect collapsenav-doc --format "{{.Id}}")
-      - curl  -X POST \
-            'https://portainer.collapsenav.cn/api/docker/2/containers/$containerid/recreate' \
-            --header 'Accept: */*' \
-            --header 'User-Agent: Thunder Client (https://www.thunderclient.com)' \
-            --header 'X-API-Key: $APIKEY' \
-            --header 'Content-Type: application/json' \
-            --data-raw '{"pullimage": false}'
+      - curl  -X POST 'https://portainer.collapsenav.cn/api/docker/2/containers/$containerid/recreate' --header 'Accept: */*' --header 'User-Agent: Thunder Client (https://www.thunderclient.com)' --header 'X-API-Key: $APIKEY' --header 'Content-Type: application/json' --data-raw '{"pullimage": false}'
   # - name: push
   #   when:
   #     branch:
