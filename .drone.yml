@@ -18,28 +18,49 @@ steps:
         path: /var/run/docker.sock
     commands:
       - docker build -t $IMAGE .
-  - name: push
+  - name: cicd
     when:
       branch:
         - main
     image: docker:dind
     environment:
       IMAGE: collapsenav-dotnet-tool-doc
-      DOCKERUSER:
-        from_secret: dockeruser
-      DOCKERPWD:
-        from_secret: dockerpwd
+      APIKEY:
+        from_secret: portainer_api_key
     volumes:
       - name: dockersock
         path: /var/run/docker.sock
     commands:
-      - export datetag=$(date +%Y-%m-%d-%H-%M)
-      - export dockerorigin=docker.collapsenav.cn
-      - docker login $dockerorigin -u $DOCKERUSER -p $DOCKERPWD
-      - docker tag $IMAGE $dockerorigin/doc/$IMAGE
-      - docker tag $IMAGE $dockerorigin/doc/$IMAGE:$datetag
-      - docker push $dockerorigin/doc/$IMAGE
-      - docker push $dockerorigin/doc/$IMAGE:$datetag
+      - export containerid=$(docker inspect collapsenav-doc --format "{{.Id}}")
+      - curl  -X POST \
+            'https://portainer.collapsenav.cn/api/docker/2/containers/$containerid/recreate' \
+            --header 'Accept: */*' \
+            --header 'User-Agent: Thunder Client (https://www.thunderclient.com)' \
+            --header 'X-API-Key: $APIKEY' \
+            --header 'Content-Type: application/json' \
+            --data-raw '{"pullimage": false}'
+  # - name: push
+  #   when:
+  #     branch:
+  #       - main
+  #   image: docker:dind
+  #   environment:
+  #     IMAGE: collapsenav-dotnet-tool-doc
+  #     DOCKERUSER:
+  #       from_secret: dockeruser
+  #     DOCKERPWD:
+  #       from_secret: dockerpwd
+  #   volumes:
+  #     - name: dockersock
+  #       path: /var/run/docker.sock
+  #   commands:
+  #     - export datetag=$(date +%Y-%m-%d-%H-%M)
+  #     - export dockerorigin=docker.collapsenav.cn
+  #     - docker login $dockerorigin -u $DOCKERUSER -p $DOCKERPWD
+  #     - docker tag $IMAGE $dockerorigin/doc/$IMAGE
+  #     - docker tag $IMAGE $dockerorigin/doc/$IMAGE:$datetag
+  #     - docker push $dockerorigin/doc/$IMAGE
+  #     - docker push $dockerorigin/doc/$IMAGE:$datetag
 volumes:
   - name: dockersock
     host:
