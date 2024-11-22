@@ -1,0 +1,22 @@
+---
+title: 重新打标镜像
+sidebar_position: 4
+---
+
+一般来说根据我们日常使用的镜像的不同, 镜像名称可能会非常复杂, 例如 `mcr.microsoft.com/dotnet/aspnet:9.0` 这样的名称, 这是一个微软镜像, 使用的是微软仓库而不是docker官方仓库, 所以整个镜像的名称会变得非常长, 如果再碰到一些其他的私有镜像仓库, 名字可能会更长, 这样的话在使用的时候就非常不方便了, 而且太长的名字也没那么容易进行记忆
+
+由于以上的一些问题, 我们可以对镜像重新进行打标, 或者也可以叫重命名, 这样的话在日后使用的时候就比较方便了
+
+```shell
+docker tag mcr.microsoft.com/dotnet/aspnet:9.0 aspnet9
+```
+
+这样在使用的时候就可以直接用 `aspnet9` 代替 `mcr.microsoft.com/dotnet/aspnet:9.0` 了
+
+```shell
+REPOSITORY                          TAG                IMAGE ID       CREATED          SIZE
+mcr.microsoft.com/dotnet/aspnet     9.0                82dd76eb4f74   9 days ago       224MB
+aspnet9                             latest             82dd76eb4f74   9 days ago       224MB
+```
+
+可以看到两个`aspnet`镜像, 但是这两个镜像的 `ID` 是一样的, 是完全相同的镜像, 并不会再占用额外的空间
