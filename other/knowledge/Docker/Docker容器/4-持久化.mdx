@@ -1,0 +1,70 @@
+---
+title: 持久化
+sidebar_position: 4
+---
+
+现在有很多人会使用docker来运行数据库, 但是在网上总能看到很多批评这种方式不安全的说法, 说是数据文件全在容器内部的数据层上, 一旦不小心容器被删除了, 包含的数据文件也会一起丢失
+
+其实这种说法也没错, 如果直接启动了数据库容器, 删除了之后确实会导致所有数据丢失, 可以极其方便地开启删库跑路一条龙服务
+
+我们一般可以使用以下命令启动一个 mariadb 服务
+
+```bash
+docker run -d -p 3306:3306 --name mymariadb -e MARIADB_ROOT_PASSWORD=qwe@123 mariadb:latest
+```
+
+通过执行以上的命令可以在宿主机的 `3306` 端口上创建一个 mariadb 服务, 我们可以使用这个服务创建数据库, 但是如果删除了容器, 数据库也会一起丢失
+
+此时我们可以使用 `-v` 参数来将容器内的数据目录挂载到宿主机上, 这样即使删除了容器, 数据也不会丢失
+
+```bash
+docker run -d -p 3306:3306 --name mymariadb \
+# highlight-next-line
+-v /root/mysql:/var/lib/mysql \
+-e MARIADB_ROOT_PASSWORD=qwe@123 mariadb:latest
+```
+
+这样就将容器内的 `/var/lib/mysql` 目录挂载到了宿主机的 `/root/mysql` 目录上, 即使删除了容器, 曾经的数据文件也会保留在这个目录中, 之后可以重新启动容器, 并将这个目录重新挂载到容器内, 数据就可以被重新读取到了
+
+
+## 使用数据卷
+
+除了直接挂载目录, 还可以使用数据卷来持久化数据, docker 还有一个叫做 volume 的功能, 这是专门为了docker持久化数据而设计的
+
+创建数据卷的命令如下
+
+```bash
+docker volume create mariadb-data
+```
+
+这样就创建了一个专用的数据卷, 可以使用 `docker volume ls` 命令来查看所有数据卷
+
+之后可以使用以下命令来启动 mariadb 容器, 并将数据卷挂载到容器内
+
+```bash
+docker run -d -p 3306:3306 --name mymariadb \
+# highlight-next-line
+-v mariadb-data:/var/lib/mysql \
+-e MARIADB_ROOT_PASSWORD=qwe@123 mariadb:latest
+```
+
+这样就将数据卷 `mariadb-data` 挂载到了容器内的 `/var/lib/mysql` 目录上, 不过数据卷的具体位置在宿主机上基本上可以认为是不可见的, 所以还是推荐直接挂载目录的方式来持久化数据, 这样比较方便
+
+## 持久化已经运行的容器
+
+如果已经有一个正在运行的容器, 也可以将数据目录挂载到宿主机上, 但是需要先停止容器, 保证不会有新的数据产生, 然后将需要持久化的文件从容器内复制到宿主机上, 然后删除这个容器, 重新创建一次, 在创建时进行目录挂载的操作
+
+```bash
+# 暂停容器
+docker stop mymariadb
+# 拷贝数据到宿主机
+docker cp mymariadb:/var/lib/mysql /root/mysql
+# 移除旧容器
+docker rm mymariadb
+# 重新创建容器, 并挂载目录到容器内
+docker run -d -p 3306:3306 --name mymariadb \
+-v /root/mysql:/var/lib/mysql \
+-e MARIADB_ROOT_PASSWORD=qwe@123 mariadb:latest
+```
+
+以上一套命令执行下来就可以将已经运行的容器的数据持久化到宿主机上了
