@@ -1,0 +1,40 @@
+---
+title: 其他启动参数
+sidebar_position: 5
+---
+
+## 重启策略
+
+docker 在创建容器时可以指定 `--restart` 参数, 用于设置容器的重启策略
+
+- `no` : 默认策略, 容器退出时不重启
+- `on-failure` : 容器非正常退出时重启
+- `always` : **容器总是重启**
+- `unless-stopped` : 除非容器被手动停止, 否则一直重启
+
+```bash
+docker run --restart=always nginx
+```
+
+一般最常用的就是 `always`
+
+如果已经有一个正在运行的容器, 但是其重启策略在创建时没有指定或者指定错了(一般不会), 可以使用 `docker update` 命令来更新
+
+```bash
+docker update --restart=always mycontainer
+```
+
+## 环境变量
+
+容器通过镜像创建, 但是我们需要在创建时指定一部分内部的环境变量, 自定义一些配置信息, 比如各种数据库服务, 一般而言都需要重新设置密码什么的
+
+此时可以使用 `--env` `-e` 参数来指定环境变量
+
+```bash
+docker run -d -p 3306:3306 --name mymariadb \
+# highlight-next-line
+-e MARIADB_ROOT_PASSWORD=qwe@123 \
+mariadb:latest
+```
+
+多个环境变量就指定多个 `-e` 参数
