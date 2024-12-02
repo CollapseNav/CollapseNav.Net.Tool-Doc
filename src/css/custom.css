@@ -60,12 +60,14 @@ html[data-theme='dark'] .docusaurus-highlight-code-line {
   padding: 0 var(--ifm-pre-padding);
   border-left: 3px solid #ff000080;
 }
+
 .ph-1 {
   padding-left: 1rem;
   padding-right: 1rem;
 }
 
-.rh-1 {
+.mr-1 {
   margin-left: 1rem;
   margin-right: 1rem;
+  margin-top: 1rem;
 }
