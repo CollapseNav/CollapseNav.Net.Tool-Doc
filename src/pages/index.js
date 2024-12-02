@@ -15,8 +15,16 @@ function HomepageHeader() {
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
           <Link
-            className="button button--secondary button--lg"
+            className="button button--secondary button--lg rh-1"
             to="/docs/tools/Tool">😏来！看文档！
+          </Link>
+          <Link
+            className="button button--secondary button--lg rh-1"
+            to="/other/Dotnet">看看.Net
+          </Link>
+          <Link
+            className="button button--secondary button--lg rh-1"
+            to="/other/knowledge">其他技术栈
           </Link>
         </div>
       </div>
