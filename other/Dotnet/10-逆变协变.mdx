@@ -7,9 +7,10 @@ sidebar_position: 10
 
 一般来说, 泛型的作用就类似一个占位符, 或者说是一个参数, 可以让我们把类型像参数一样进行传递, 尽可能地复用代码
 
-**我有个朋友**, 在使用的过程中发现一个问题
+假设**我有个朋友**, 在使用的过程中发现一个问题
 
 ```csharp
+// error-next-line
 IFace<object> item = new Face<string>(); // CS0266
 
 public interface IFace<T>
