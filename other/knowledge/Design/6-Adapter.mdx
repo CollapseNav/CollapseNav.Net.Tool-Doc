@@ -26,10 +26,10 @@ title: 适配器模式
 ---
 classDiagram
 
-IWeapon <|-- GunAdapter
-IWeapon <|-- SwordAdapter
-GunAdapter ..* Gun
-SwordAdapter ..* Sword
+IWeapon <|.. GunAdapter
+IWeapon <|.. SwordAdapter
+GunAdapter --> Gun
+SwordAdapter --> Sword
 Character ..> IWeapon
 
 class Character{

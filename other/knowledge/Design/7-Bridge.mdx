@@ -53,14 +53,14 @@ class Dagger{
     + Attack()
     + UseMagic()
 }
-Character ..> MagicWeapon
+Character --> MagicWeapon
 IMagic <|.. FireMagic
 IMagic <|.. IceMagic
 IMagic <|.. LightningMagic
-IMagic ..* MagicWeapon
-MagicWeapon <|.. Gun
-MagicWeapon <|.. Sword
-MagicWeapon <|.. Dagger
+IMagic <-- MagicWeapon
+MagicWeapon <|-- Gun
+MagicWeapon <|-- Sword
+MagicWeapon <|-- Dagger
 ```
 
 ## 代码
