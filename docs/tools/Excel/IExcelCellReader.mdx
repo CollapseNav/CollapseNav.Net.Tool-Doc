@@ -2,7 +2,7 @@
 sidebar_position: 3
 ---
 
-# IExcelCellRead
+# IExcelCellReader
 
 :::note
 之前的 `IExcelRead` 只能做读取操作，并且会将所有数据都读为 `string`
@@ -11,17 +11,17 @@ sidebar_position: 3
 
 在我整合导出相关功能的时候就发现了不足
 
-于是为了统一导出操作，做了 `IExcelCellRead`
+于是为了统一导出操作，做了 `IExcelCellReader`
 :::
 
 ## 接口定义
 
 :::info
-`IExcelCellRead` 相关的接口定义类似下面这样
+`IExcelCellReader` 相关的接口定义类似下面这样
 :::
 
 ```csharp
-public interface IExcelCellRead : IDisposable
+public interface IExcelCellReader : IDisposable
 {
     IEnumerable<IReadCell> this[string field] { get; }
     IEnumerable<IReadCell> this[long row] { get; }
@@ -53,16 +53,16 @@ public interface IReadCell<T> : IReadCell
 也能支持后续更多的扩展
 :::
 
-## 获取 IExcelCellRead 实例
+## 获取 IExcelCellReader 实例
 
 :::note
 现阶段拥有 `NPOICellRead EPPlusCellRead MiniCellRead` 三种实现
 :::
 
 ```csharp
-using IExcelCellRead reader = new NPOICellRead(filePath);
-using IExcelCellRead reader = new EPPlusCellRead(filePath);
-using IExcelCellRead reader = new MiniCellRead(filePath);
+using IExcelCellReader reader = new NPOICellRead(filePath);
+using IExcelCellReader reader = new EPPlusCellRead(filePath);
+using IExcelCellReader reader = new MiniCellRead(filePath);
 ```
 
 ## 简单使用
@@ -147,11 +147,11 @@ reader.SaveTo(stream);
 ## 实现了 IEnumerable
 
 :::note
-`IExcelCellRead` 和 `IExcelRead` 一样都实现了 IEnumerable 接口
+`IExcelCellReader` 和 `IExcelRead` 一样都实现了 IEnumerable 接口
 :::
 
 ```csharp
-IExcelCellRead reader = new MiniCellRead(path);
+IExcelCellReader reader = new MiniCellRead(path);
 reader.Count();
 var IEnumerable<IReadCell> firstData = reader.First();
 var IEnumerable<IReadCell> lastData = reader.Last();
@@ -163,7 +163,7 @@ var IEnumerable<IReadCell> skipOne = reader.Skip(1).First()
 :::
 
 ```csharp
-IExcelCellRead reader = new MiniCellRead(path);
+IExcelCellReader reader = new MiniCellRead(path);
 IEnumerable<IReadCell> mergeData = reader.Merge()
 ```
 

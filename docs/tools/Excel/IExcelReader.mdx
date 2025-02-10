@@ -2,10 +2,10 @@
 sidebar_position: 2
 ---
 
-# IExcelRead
+# IExcelReader
 
 :::info
-由于使用了 `NPOI,EPPlus,MiniExcel` 三种实现, 所以简单封装了一个 `IExcelRead`, 试图简化使用
+由于使用了 `NPOI,EPPlus,MiniExcel` 三种实现, 所以简单封装了一个 `IExcelReader`, 试图简化使用
 
 暂时来看是有效果的，对我来说效果非常好
 :::
@@ -13,11 +13,11 @@ sidebar_position: 2
 ## 接口定义
 
 :::info
-`IExcelRead` 的定义类似下面这样
+`IExcelReader` 的定义类似下面这样
 :::
 
 ```csharp
-public interface IExcelRead<T> : IDisposable
+public interface IExcelReader<T> : IDisposable
 {
     IEnumerable<T> this[string field] { get; }
     IEnumerable<T> this[long row] { get; }
@@ -32,25 +32,25 @@ public interface IExcelRead<T> : IDisposable
 为了方便使用, 又有
 
 ```csharp
-public interface IExcelRead : IExcelRead<string> { }
+public interface IExcelReader : IExcelReader<string> { }
 ```
 
-会将 excel 中的所有数据都 ToString
+会将 excel 中的所有数据都 `ToString`
 
 :::tip
-最佳实践中的导入功能就是依据 IExcelRead 实现的
+最佳实践中的导入功能就是依据 IExcelReader 实现的
 :::
 
-## 获取 IExcelRead 实例
+## 获取 IExcelReader 实例
 
 :::note
-现阶段拥有 `NPOIExcelRead EPPlusExcelRead MiniExcelRead` 三种实现
+现阶段拥有 `NPOIExcelReader EPPlusExcelRead MiniExcelReader` 三种实现
 :::
 
 ```csharp
-using IExcelRead reader = new NPOIExcelRead(filePath);
-using IExcelRead reader = new EPPlusExcelRead(filePath);
-using IExcelRead reader = new MiniExcelRead(filePath);
+using IExcelReader reader = new NPOIExcelReader(filePath);
+using IExcelReader reader = new EPPlusExcelRead(filePath);
+using IExcelReader reader = new MiniExcelReader(filePath);
 ```
 
 ## 使用
@@ -82,7 +82,7 @@ IEnumerable<string> col = read["Column"];
 尝试使用`yield return` 降低性能损耗, 但是有没有效果, 有多大效果, 这我就不知道了, 暂时也没有能力去验证
 :::
 :::danger
-MiniExcelRead 由于 MiniExcel 的实现问题，在获取超出原表格范围的单元格数据时，可能会出现异常
+MiniExcelReader 由于 MiniExcel 的实现问题，在获取超出原表格范围的单元格数据时，可能会出现异常
 :::
 
 ## 实现了 IEnumerable
@@ -92,11 +92,11 @@ MiniExcelRead 由于 MiniExcel 的实现问题，在获取超出原表格范围�
 
 数据类型为 `IEnumerable<string>`
 
-现在 `IExcelRead` 支持使用 First() Last() 等集合方法了!
+现在 `IExcelReader` 支持使用 First() Last() 等集合方法了!
 :::
 
 ```csharp
-IExcelRead reader = new MiniExcelRead(path);
+IExcelReader reader = new MiniExcelReader(path);
 reader.Count();
 var IEnumerable<string> firstData = reader.First();
 var IEnumerable<string> lastData = reader.Last();
@@ -108,7 +108,7 @@ var IEnumerable<string> skipOne = reader.Skip(1).First()
 :::
 
 ```csharp
-IExcelRead reader = new MiniExcelRead(path);
+IExcelReader reader = new MiniExcelReader(path);
 IEnumerable<string> mergeData = reader.Merge()
 ```
 
