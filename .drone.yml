@@ -49,6 +49,8 @@ steps:
       - docker tag $IMAGE $dockerorigin/doc/$IMAGE:$datetag
       - docker push $dockerorigin/doc/$IMAGE
       - docker push $dockerorigin/doc/$IMAGE:$datetag
+      - docker rmi $dockerorigin/doc/$IMAGE:$datetag
+      - docker rmi $IMAGE
 volumes:
   - name: dockersock
     host:
